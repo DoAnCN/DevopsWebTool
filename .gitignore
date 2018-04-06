@@ -1,0 +1,7 @@
+# dot file
+.*
+!.gitignore
+# setup.py .egg-info
+*.egg-info
+* vim file .swp
+*.swp
