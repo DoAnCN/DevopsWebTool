@@ -3,5 +3,7 @@
 !.gitignore
 # setup.py .egg-info
 *.egg-info
-* vim file .swp
+# vim file .swp
 *.swp
+# python compile
+*.py[co]
