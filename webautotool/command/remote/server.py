@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from logging import log
-from sh import ssh, ErrorReturnCode
+import logging
+from sh import ssh, ErrorReturnCode, ErrorReturnCode_1
 import re
 
 
 class Server(object):
 
     def __init__(self, host, timeout=60):
-        print ("------------", host)
         self.user = host["user"]
         self.address = host["address"]
         self.port = host["port"]
@@ -20,19 +19,28 @@ class Server(object):
                             '-o', 'PasswordAuthentication=no',
                             '-o', 'ConnectTimeout=%s' % timeout)
 
-    def execute(self, *cmd):
-        result = self.ssh(*cmd, _iter=False, _err_to_out=False)
+    def execute(self, *cmd, follow=False):
+
+        result = self.ssh(*cmd, _iter=True, _err_to_out=False)
+
+        if not follow and result.stderr:
+            '''
+            Don't do this with follow, or it will stop output until the
+            command is fully executed.
+            '''
+            logging.debug(result.stderr)
         return result
 
     def check_remote_file(self, filepath):
         try:
             self.execute(['test', '-e', filepath])
             exists = True
-        except ErrorReturnCode:
+        except ErrorReturnCode_1:
             exists = False
         return exists
 
     def git_clone(self, url, dest_dir):
+        logging.info("Clonning project from github")
         cmd = [
             'git clone', '--progress', url, dest_dir
         ]
@@ -58,16 +66,12 @@ class Server(object):
         self.create_user(db_user, host, passwd)
         cmd = [
             'mysqladmin',
-            '-u', 'root',
-            '--password=1',
             'create', db_name
         ]
         self.execute(cmd)
         self.grant_user(db_user, host, db_name)
         cmd = [
             'mysql',
-            '-u', 'root',
-            '--password=1',
             db_name, '<', '/opt/web/web-HOANGLAMMOC/db/son.sql'
         ]
         self.execute(cmd)
@@ -78,8 +82,6 @@ class Server(object):
         print(query)
         cmd = [
             'mysql',
-            '-u', 'root',
-            '--password=1',
             '--execute=\"%s\"'% query
         ]
         self.execute(cmd)
@@ -89,8 +91,6 @@ class Server(object):
         print (query)
         cmd = [
             'mysql',
-            '-u', 'root',
-            '--password=1',
             '--execute=\'%s\'' % query
         ]
         self.execute(cmd)
