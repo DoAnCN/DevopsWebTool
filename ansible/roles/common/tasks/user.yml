@@ -1,0 +1,41 @@
+---
+
+- name: Create web group
+  group:
+    name: web
+    state: present
+
+- name: Create web user
+  user:
+    name: web
+    createhome: yes
+    shell: /bin/bash
+    home: /opt/web
+    group: web
+    move_home: yes
+    state: present
+
+- name: Ensure web user have .ssh folder
+  file:
+    path: /opt/web/.ssh
+    owner: web
+    group: web
+    mode: 0775
+    state: directory
+
+- name: Add ssh keys's user
+  tags: [authorized_keys]
+  template:
+    src: ssh/authorized_keys.j2
+    dest: /opt/web/.ssh/authorized_keys
+    owner: web
+    group: web
+    mode: 0775
+
+- name: Add ssh key to clone project
+  template:
+    src: ssh/key_clone.j2
+    dest: /opt/web/.ssh/id_ed25519
+    owner: web
+    group: web
+    mode: 0600

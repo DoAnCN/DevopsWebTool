@@ -1,0 +1,23 @@
+---
+
+- name: Install nginx
+  apt:
+    name: nginx
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+
+- name: Add config file
+  template:
+    src: nginx/nginx.conf.j2
+    dest: "/etc/nginx/conf.d/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - "{{ nginx_domains }}"
+
+- name: Ensure nginx enable
+  service:
+    name: nginx
+    state: restarted

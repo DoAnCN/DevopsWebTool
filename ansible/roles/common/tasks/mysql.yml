@@ -1,0 +1,68 @@
+---
+
+- name: install package mysql
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+  with_items:
+    - mysql-client-5.7
+    - mysql-server-5.7
+    - python-mysqldb
+    - libmysqlclient-dev
+
+- name: Copy info login mysql as .my.cfg file
+  template:
+    src: mysql/my.cnf.j2
+    dest: /opt/web/.my.cnf
+    owner: web
+    group: web
+    mode: 0775
+
+#- name: Update MySQL root password for all root accounts
+#  mysql_user:
+#    name: root
+#    host: "{{ item }}"
+#    password: "{{ mysql_password_root }}"
+#    state: present
+#  with_items:
+#   - localhost
+
+#- name: Sets the root password
+#  mysql_user:
+#    name: root
+#    password: "{{ mysql_password_root }}"
+#    host: localhost
+#    check_implicit_admin: true
+#  with_items:
+#    - localhost
+#    - '127.0.0.1'
+#    - "::1"
+
+- name: Sets the root password
+  mysql_user:
+    name: web
+    password: "{{ mysql_password_root }}"
+    host: localhost
+    check_implicit_admin: true
+  with_items:
+    - localhost
+
+- name: Ensure no anonymous user
+  mysql_user: name='' host={{ item }} state=absent
+  with_items:
+    - localhost
+    - "{{ansible_hostname}}"
+
+- name: Remove database test
+  mysql_db:
+    name: test
+    state: absent
+  notify:
+    Restart MySQL
+
+- name: Restart mysql
+  service:
+    name: mysql
+    state: restarted
