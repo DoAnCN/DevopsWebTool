@@ -79,7 +79,7 @@ class Server(object):
     def create_user(self,user, host, passwd):
         query = "CREATE USER \'{}\'@\'{}\' " \
                 "IDENTIFIED BY \'{}\';".format(user, host, passwd)
-        print(query)
+        logging.info("Create user database")
         cmd = [
             'mysql',
             '--execute=\"%s\"'% query
