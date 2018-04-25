@@ -64,12 +64,12 @@ class Server(object):
             if var == 'host':
                 host = val
         self.create_user(db_user, host, passwd)
+        self.grant_user(db_user, host, db_name)
         cmd = [
             'mysqladmin',
             'create', db_name
         ]
         self.execute(cmd)
-        self.grant_user(db_user, host, db_name)
         cmd = [
             'mysql',
             db_name, '<', '/opt/web/web-HOANGLAMMOC/db/son.sql'

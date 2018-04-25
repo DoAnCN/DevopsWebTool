@@ -46,6 +46,8 @@
     password: "{{ mysql_password_root }}"
     host: localhost
     check_implicit_admin: true
+    priv: "*.*:ALL,GRANT"
+    state: present
   with_items:
     - localhost
 

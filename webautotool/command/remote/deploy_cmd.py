@@ -16,7 +16,7 @@ def deploy_cmd(server, url):
             print("Check git dir exists")
             logging.info("Check dest dir exists git dir")
             first_deploy = False
-    print(first_deploy)
+
     if first_deploy:
         logging.info("Clone project")
         server.git_clone(url, dest_dir)
