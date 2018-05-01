@@ -13,7 +13,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         'click>=6.0',
-        'sh'
+        'sh',
+        'colorlog'
     ],
     entry_points='''
         [console_scripts]

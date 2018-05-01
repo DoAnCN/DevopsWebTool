@@ -2,6 +2,7 @@
 
 import click
 from webautotool.command import webautotool as cli
+from webautotool.config.log import logger
 from webautotool.command.remote.server import Server
 from webautotool.command.remote.deploy_cmd import deploy_cmd
 
@@ -11,7 +12,7 @@ def remote(ctx, *args, **kw):
     """
     Remote to server
     """
-    if ctx.invoked_subcommand is None:
+    if ctx.invoked_subcommand is True:
         ctx.invoke(deploy, *args, **kw)
 
 @remote.command()
@@ -33,4 +34,14 @@ def deploy(ctx, user, address, port, url):
         'port': port,
     }
     s = Server(host)
-    deploy_cmd(s, url)
+    deploy_cmd(s, url, '1.0')
+
+@remote.command()
+@click.pass_context
+def test(ctx):
+    print ("==================")
+    log = logger('test')
+    log.info("helloinfo")
+    log.error("helloerror")
+    log.debug("hellodebug")
+    log.warning("hellowarning")

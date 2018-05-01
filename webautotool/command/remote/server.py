@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+# from webautotool.config.log import ColorizedLogger
 from sh import ssh, ErrorReturnCode, ErrorReturnCode_1
 import re
 
@@ -19,16 +20,26 @@ class Server(object):
                             '-o', 'PasswordAuthentication=no',
                             '-o', 'ConnectTimeout=%s' % timeout)
 
-    def execute(self, *cmd, follow=False):
+    def execute(self, *cmd, follow=False, print_follow=False):
 
-        result = self.ssh(*cmd, _iter=True, _err_to_out=False)
-
+        """
+        Execute a command on the remote host
+        follow allow to read stdout as an iterator
+        """
+        if print_follow:
+            result = self.ssh(*cmd, _iter=True, _err_to_out=follow)
+            for line in result:
+                print(line.strip())
+        else:
+            result = self.ssh(*cmd, _iter=follow, _err_to_out=follow)
+        # Pipe error output to stdout when following
         if not follow and result.stderr:
             '''
             Don't do this with follow, or it will stop output until the
             command is fully executed.
             '''
             logging.debug(result.stderr)
+
         return result
 
     def check_remote_file(self, filepath):
@@ -39,10 +50,30 @@ class Server(object):
             exists = False
         return exists
 
-    def git_clone(self, url, dest_dir):
+    def git_clone(self, url, dest_dir, version='1.0'):
+        logging.setLoggerClass(Logger)
+
         logging.info("Clonning project from github")
         cmd = [
-            'git clone', '--progress', url, dest_dir
+            'git clone',
+            '--progress',
+            url, dest_dir,
+            '--branch', version
+        ]
+        self.execute(cmd)
+
+    def git_pull(self, version='1.0', proj_path=None):
+
+        if not self.check_remote_file(proj_path):
+            logging.ERROR("Don't found directory of project")
+            return
+        logging.info("Pulling project...")
+        cmd = [
+            'git',
+            '-C',
+            proj_path,
+            'pull', 'origin',
+            version
         ]
         self.execute(cmd)
 
@@ -77,6 +108,8 @@ class Server(object):
         self.execute(cmd)
         
     def create_user(self,user, host, passwd):
+        logging.setLoggerClass(Logger)
+
         query = "CREATE USER \'{}\'@\'{}\' " \
                 "IDENTIFIED BY \'{}\';".format(user, host, passwd)
         logging.info("Create user database")

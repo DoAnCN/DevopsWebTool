@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import click
+from webautotool.config.log import init_logger
 
 @click.group()
 @click.option('--quite', '-1',is_flag=True , default=False,
@@ -19,4 +20,5 @@ def webautotool(ctx,quite, light, auto_update, env_update):
         auto_update = False
         env_update = False
     ctx.command.name
+    init_logger(level='debug')
     # ctx.invoked_subcommand
