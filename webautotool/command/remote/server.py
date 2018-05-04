@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import logging
-# from webautotool.config.log import ColorizedLogger
-from sh import ssh, ErrorReturnCode, ErrorReturnCode_1
 import re
+from sh import ssh, ErrorReturnCode_1
 
+from webautotool.config.log import logger
 
 class Server(object):
 
@@ -26,19 +25,20 @@ class Server(object):
         Execute a command on the remote host
         follow allow to read stdout as an iterator
         """
+        log = logger('execute command sh')
         if print_follow:
             result = self.ssh(*cmd, _iter=True, _err_to_out=follow)
             for line in result:
                 print(line.strip())
         else:
-            result = self.ssh(*cmd, _iter=follow, _err_to_out=follow)
+            result = self.ssh(*cmd, _iter=False, _err_to_out=follow)
         # Pipe error output to stdout when following
         if not follow and result.stderr:
             '''
             Don't do this with follow, or it will stop output until the
             command is fully executed.
             '''
-            logging.debug(result.stderr)
+            log.debug(result.stderr)
 
         return result
 
@@ -51,9 +51,9 @@ class Server(object):
         return exists
 
     def git_clone(self, url, dest_dir, version='1.0'):
-        logging.setLoggerClass(Logger)
+        log = logger('git clone')
 
-        logging.info("Clonning project from github")
+        log.info("Clonning project from github")
         cmd = [
             'git clone',
             '--progress',
@@ -63,11 +63,11 @@ class Server(object):
         self.execute(cmd)
 
     def git_pull(self, version='1.0', proj_path=None):
-
+        log = logger('git pull')
         if not self.check_remote_file(proj_path):
-            logging.ERROR("Don't found directory of project")
+            log.ERROR("Don't found directory of project")
             return
-        logging.info("Pulling project...")
+        log.info("Pulling project...")
         cmd = [
             'git',
             '-C',
@@ -78,6 +78,7 @@ class Server(object):
         self.execute(cmd)
 
     def create_db(self, php):
+        log = logger('create database')
         cmd = [
             'cat', php
         ]
@@ -96,23 +97,26 @@ class Server(object):
                 host = val
         self.create_user(db_user, host, passwd)
         self.grant_user(db_user, host, db_name)
+        log.info('Create database {}'.format(db_name))
         cmd = [
             'mysqladmin',
             'create', db_name
         ]
         self.execute(cmd)
-        cmd = [
-            'mysql',
-            db_name, '<', '/opt/web/web-HOANGLAMMOC/db/son.sql'
-        ]
-        self.execute(cmd)
+        if self.check_remote_file('/opt/web/web-HOANGLAMMOC/db/son.sql'):
+            log.info('Input already data to database')
+            cmd = [
+                'mysql',
+                db_name, '<', '/opt/web/web-HOANGLAMMOC/db/son.sql'
+            ]
+            self.execute(cmd)
         
     def create_user(self,user, host, passwd):
-        logging.setLoggerClass(Logger)
+        log = logger('create user')
 
         query = "CREATE USER \'{}\'@\'{}\' " \
                 "IDENTIFIED BY \'{}\';".format(user, host, passwd)
-        logging.info("Create user database")
+        log.info("Create user database")
         cmd = [
             'mysql',
             '--execute=\"%s\"'% query
@@ -120,6 +124,8 @@ class Server(object):
         self.execute(cmd)
 
     def grant_user(self, user, host, db_name):
+        log = logger('grant user')
+        log.info('Set grant all on database for user')
         query = "GRANT ALL ON {}.* TO '{}'@'{}'".format(db_name, user, host)
         print (query)
         cmd = [

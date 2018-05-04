@@ -1,3 +1,4 @@
+
 # -*- coding:utf-8 -*-
 
 import click
@@ -13,12 +14,14 @@ from webautotool.config.log import init_logger
               help='Update of webautotool')
 @click.option('--env-update/--no-env-update', default=True,
               help='Update virtual enviroment')
+@click.option('--debug/--no-debug', '-d', default=False,
+              help='Enable debug process')
 @click.pass_context
-def webautotool(ctx,quite, light, auto_update, env_update):
+def webautotool(ctx,quite, light, auto_update, env_update, debug):
 
     if light:
         auto_update = False
         env_update = False
     ctx.command.name
-    init_logger(level='debug')
+    init_logger(debug)
     # ctx.invoked_subcommand
