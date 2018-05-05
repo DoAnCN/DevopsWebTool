@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 
-from webautotool.command import webautotool as cli
-from webautotool.command.remote import remote
-from webautotool.command.common import auto_update
+from DevopsWebTool.webautotool.command import webautotool as cli
+from DevopsWebTool.webautotool.command.remote import remote
+from DevopsWebTool.webautotool.command.common import auto_update
 
 assert auto_update
 assert remote
