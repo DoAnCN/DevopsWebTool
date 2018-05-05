@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import click
-from ..webautotool.config.log import init_logger
+from webautotool.config.log import init_logger
 
 @click.group()
 @click.option('--quite', '-1',is_flag=True , default=False,

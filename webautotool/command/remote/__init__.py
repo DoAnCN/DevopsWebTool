@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
 
 import click
-from ..webautotool.config.log import logger
-from ..webautotool.commmand import webautotool as cli
-from ..webautotool.commmand.remote.server import Server
-from ..webautotool.commmand.remote.deploy_cmd import deploy_cmd
+from webautotool.config.log import logger
+from webautotool.commmand import webautotool as cli
+from webautotool.commmand.remote.server import Server
+from webautotool.commmand.remote.deploy_cmd import deploy_cmd
 
 @cli.group()
 @click.pass_context

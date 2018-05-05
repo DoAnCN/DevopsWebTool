@@ -1,6 +1,6 @@
 # -*- conding: utf-8 -*-
 
-from ..webautotool.config.log import logger
+from webautotool.config.log import logger
 
 def deploy_cmd(server, url, ver):
     log = logger('deploy')
