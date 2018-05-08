@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
 
 import click
-from webautotool.config.log import logger
-from webautotool.command import webautotool as cli
-from webautotool.command.remote.server import Server
-from webautotool.command.remote.deploy_cmd import deploy_cmd
+from DevopsWebTool.webautotool.config.log import logger
+from DevopsWebTool.webautotool.command import webautotool as cli
+from DevopsWebTool.webautotool.command.remote.server import Server
+from DevopsWebTool.webautotool.command.remote.deploy_cmd import deploy_cmd
 
 @cli.group()
 @click.pass_context

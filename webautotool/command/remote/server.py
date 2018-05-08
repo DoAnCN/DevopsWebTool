@@ -3,7 +3,7 @@
 import re
 from sh import ssh, ErrorReturnCode_1
 
-from webautotool.config.log import logger
+from DevopsWebTool.webautotool.config.log import logger
 
 class Server(object):
 
