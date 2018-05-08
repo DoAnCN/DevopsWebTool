@@ -19,7 +19,7 @@ class Server(object):
                             '-o', 'PasswordAuthentication=no',
                             '-o', 'ConnectTimeout=%s' % timeout)
 
-    def execute(self, *cmd, follow=False, print_follow=False):
+    def execute(self, cmd, follow=False, print_follow=False):
 
         """
         Execute a command on the remote host
