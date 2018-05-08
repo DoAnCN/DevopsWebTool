@@ -3,7 +3,7 @@
 import click
 import os
 
-from DevopsWebTool.webautotool.command import webautotool as cli
+from webautotool.command import webautotool as cli
 
 @cli.group()
 @click.pass_context
