@@ -133,3 +133,4 @@ class Server(object):
             '--execute=\'%s\'' % query
         ]
         self.execute(cmd)
+
