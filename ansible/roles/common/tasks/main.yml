@@ -3,6 +3,10 @@
   tags: [create_user_web]
   include: user.yml
 
+- name: set locale
+  tags: [locale]
+  include: locale.yml
+
 - name: install php
   tags: [php]
   include: php.yml
@@ -14,3 +18,4 @@
 - name: install nginx
   tags: [nginx]
   include: nginx.yml
+
