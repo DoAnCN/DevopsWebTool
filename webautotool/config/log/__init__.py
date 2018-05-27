@@ -4,7 +4,9 @@ import logging
 import colorlog
 
 formatter = colorlog.ColoredFormatter(
-    '%(purple)s%(asctime)s %(log_color)s%(levelname)-8s%(reset)s %(white)s%(message)s',
+    '%(purple)s%(asctime)s '
+    '%(log_color)s%(levelname)-4s%(reset)s '
+    '%(white)s%(message)s',
     datefmt = '%Y-%m-%d %H:%M',
     reset = True,
     log_colors = {
