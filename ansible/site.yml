@@ -4,11 +4,12 @@
   gather_facts: True
   pre_tasks:
     - name: install python for Ansible
-      raw: sudo apt-get -qq -y update && sudo apt-get install -q -y python python-minimal python-dev python-simplejson python-apt lsb-release
+      raw: sudo apt-get -qq -y update && sudo apt-get install -q -y python python-minimal python-dev python-simplejson python-apt lsb-release python-pip
       changed_when: False
     - name: gather facts for next task
       setup:
   tasks: []
+
 
 - hosts: all
   tags: [common]
