@@ -1,0 +1,20 @@
+---
+
+- name: set locale.gen file
+  locale_gen: name={{ item }} state=present
+  with_items:
+    - "{{ locale_support }}"
+
+- name: set system-wide default locale
+  template: src=locale/default.j2 dest=/etc/default/locale
+
+- name: install localpurge package
+  apt:
+    name: localepurge
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+    force: yes
+
+- name: setup localpurge to save disk space
+  template: src=locale/localepurge.j2 dest=/etc/locale.nopurge
