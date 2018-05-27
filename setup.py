@@ -14,7 +14,6 @@ setup(
     install_requires=[
         'click>=6.0',
         'colorlog',
-        'pip'
         'sh'
     ],
     entry_points='''
