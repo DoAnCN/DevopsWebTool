@@ -77,11 +77,10 @@ class Server(object):
         ]
         self.execute(cmd)
 
-    def create_db(self, php):
+    def create_db(self, php, proj_name):
         log = logger('create database')
-        cmd = [
-            'cat', php
-        ]
+
+        cmd = ['cat', php]
         php_content = self.execute(cmd)
         reg = r'\$(?P<variable>\w+)\s*=\s*"?\'?(?P<value>[^"\';]+)"?\'?;'
         rg = re.compile(reg, re.IGNORECASE | re.DOTALL)
@@ -95,6 +94,7 @@ class Server(object):
                 db_user = val
             if var == 'host':
                 host = val
+
         self.create_user(db_user, host, passwd)
         self.grant_user(db_user, host, db_name)
         log.info('Create database {}'.format(db_name))
@@ -103,11 +103,12 @@ class Server(object):
             'create', db_name
         ]
         self.execute(cmd)
-        if self.check_remote_file('/opt/web/web-HOANGLAMMOC/db/son.sql'):
-            log.info('Input already data to database')
+        db_input = '/opt/web/{}/db/*.sql'.format(proj_name)
+        if self.check_remote_file(db_input):
+            log.info('Restore data to database')
             cmd = [
-                'mysql',
-                db_name, '<', '/opt/web/web-HOANGLAMMOC/db/son.sql'
+                'mysql', '--database',
+                db_name, '<', db_input
             ]
             self.execute(cmd)
         
@@ -127,7 +128,6 @@ class Server(object):
         log = logger('grant user')
         log.info('Set grant all on database for user')
         query = "GRANT ALL ON {}.* TO '{}'@'{}'".format(db_name, user, host)
-        print (query)
         cmd = [
             'mysql',
             '--execute=\'%s\'' % query

@@ -14,6 +14,6 @@ def deploy_cmd(server, url, ver):
     if first_deploy:
         log.info("Clone project")
         server.git_clone(url, dest_dir)
-        server.create_db(dest_dir + "/lib/db.php")
+        server.create_db(dest_dir + "/lib/db.php", proj_name)
     else:
         server.git_pull(ver, dest_dir )
