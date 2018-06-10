@@ -44,7 +44,7 @@ def start(ctx, url, version, name):
 
     _set_info_for_php(name or url.split("/")[1].replace(".git",""))
 
-    
+
 
 def _set_info_for_php(proj_name, host='127.0.0.1'):
     log=logger('set info')

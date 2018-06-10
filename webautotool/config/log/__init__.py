@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import colorlog
+import logging
+import re
 
 formatter = colorlog.ColoredFormatter(
     '%(purple)s%(asctime)s '
@@ -22,16 +23,23 @@ formatter = colorlog.ColoredFormatter(
 
 
 def init_logger(lv_debug):
-    handler = colorlog.StreamHandler()
-    handler.setFormatter(formatter)
     log = colorlog.getLogger()
-    if lv_debug:
-        log.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
-    log.addHandler(handler)
+    log = disable_loggers(log)
+    level = logging.DEBUG if lv_debug else logging.INFO
+    log_handler = colorlog.StreamHandler()
+    log_handler.setFormatter(formatter)
+    log.setLevel(level)
+    log.addHandler(log_handler)
 
 
 def logger(name):
     return colorlog.getLogger(name)
+
+
+# Tạm thời chưa giải quyết được vấn đề dư log của sh
+def disable_loggers(log):
+    log_disabled = ['requests\.', 'urllib3', 'paramiko',
+                    'process', 'stream', 'command', 'sh\.']
+    log.manager.disable_pattern = re.compile('^' + '|'.join(log_disabled))
+    return log
 
