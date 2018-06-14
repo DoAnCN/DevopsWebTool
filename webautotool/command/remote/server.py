@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import re
+from random import choice
+import string
 from sh import ssh, ErrorReturnCode_1
 
 from webautotool.config.log import logger
@@ -77,25 +78,23 @@ class Server(object):
         ]
         self.execute(cmd)
 
-    def create_db(self, php, proj_name):
+    def create_db(self, php, proj_name, host='127.0.0.1'):
         log = logger('create database')
 
-        cmd = ['cat', php]
-        php_content = self.execute(cmd)
-        reg = r'\$(?P<variable>\w+)\s*=\s*"?\'?(?P<value>[^"\';]+)"?\'?;'
-        rg = re.compile(reg, re.IGNORECASE | re.DOTALL)
-        arg = rg.findall(php_content.stdout.decode('utf-8'))
-        for var, val in arg:
-            if var == 'pass':
-                passwd = val
-            if var == 'db':
-                db_name = val
-            if var == 'user':
-                db_user = val
-            if var == 'host':
-                host = val
-
+        if proj_name:
+            db_user = db_name = proj_name
+        log.info('Generate password')
+        passwd = self.generate_passwd()
+        log.info('Update file config connect between PHP and MySQL')
+        cmd = ['sed', '-i', 's/$host/$host={}/g;'
+                            's/$user/$user={}/g;'
+                            's/$pass/$pass={}/g;'
+                            's/$db/$db={}/g'.format(host, db_user,
+                                                    passwd, db_name)]
+        self.execute(cmd)
+        log.info('Create user database')
         self.create_user(db_user, host, passwd)
+        log.info('Set grant all on database for user')
         self.grant_user(db_user, host, db_name)
         log.info('Create database {}'.format(db_name))
         cmd = [
@@ -117,7 +116,7 @@ class Server(object):
 
         query = "CREATE USER \'{}\'@\'{}\' " \
                 "IDENTIFIED BY \'{}\';".format(user, host, passwd)
-        log.info("Create user database")
+        log.debug("Create user database \n {}".format(query))
         cmd = [
             'mysql',
             '--execute=\"%s\"'% query
@@ -126,11 +125,15 @@ class Server(object):
 
     def grant_user(self, user, host, db_name):
         log = logger('grant user')
-        log.info('Set grant all on database for user')
         query = "GRANT ALL ON {}.* TO '{}'@'{}'".format(db_name, user, host)
+        log.debug('Set grant all on database for user \n{}'.format(query))
         cmd = [
             'mysql',
             '--execute=\'%s\'' % query
         ]
         self.execute(cmd)
 
+    def generate_passwd(self):
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+        passwd = ''.join(choice(alphabet) for _ in range(12))
+        return passwd
