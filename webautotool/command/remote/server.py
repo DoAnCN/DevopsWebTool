@@ -86,31 +86,39 @@ class Server(object):
         log.info('Generate password')
         passwd = self.generate_passwd()
         log.info('Update file config connect between PHP and MySQL')
-        cmd = ['sed', '-i', 's/$host/$host={}/g;'
-                            's/$user/$user={}/g;'
-                            's/$pass/$pass={}/g;'
-                            's/$db/$db={}/g'.format(host, db_user,
-                                                    passwd, db_name)]
+        cmd = ['sed', '-i', '\'s/\$host =/\$host = {}/g;'
+                            's/\$user =/\$user = {}/g;'
+                            's/\$pass =/\$pass = {}/g;'
+                            's/\$db =/\$db = {}/g\''.format(host, db_user,
+                                                    passwd, db_name), php]
         self.execute(cmd)
         log.info('Create user database')
         self.create_user(db_user, host, passwd)
-        log.info('Set grant all on database for user')
-        self.grant_user(db_user, host, db_name)
         log.info('Create database {}'.format(db_name))
         cmd = [
             'mysqladmin',
             'create', db_name
         ]
         self.execute(cmd)
-        db_input = '/opt/web/{}/db/*.sql'.format(proj_name)
-        if self.check_remote_file(db_input):
-            log.info('Restore data to database')
+        log.info('Set grant all on database for user')
+        self.grant_user(db_user, host, db_name)
+        dir_input = '/opt/web/{}/db/'.format(proj_name)
+        if self.check_remote_file(dir_input):
             cmd = [
-                'mysql', '--database',
-                db_name, '<', db_input
+                'find', dir_input,
+                '-name', '*.sql'
             ]
-            self.execute(cmd)
-        
+            list_db = self.execute(cmd)
+            log.info('Restore data to database')
+            for db in list_db.split('\n'):
+                if db:
+                    cmd = [
+                        'mysql', '--database',
+                        db_name, '<', db.decode('UTF-8')
+                    ]
+                    self.execute(cmd)
+                    print (db.decode('UTF-8'))
+
     def create_user(self,user, host, passwd):
         log = logger('create user')
 
@@ -134,6 +142,6 @@ class Server(object):
         self.execute(cmd)
 
     def generate_passwd(self):
-        alphabet = string.ascii_letters + string.digits + string.punctuation
+        alphabet = string.ascii_letters + string.digits
         passwd = ''.join(choice(alphabet) for _ in range(12))
         return passwd

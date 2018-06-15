@@ -34,5 +34,5 @@ def deploy(ctx, user, address, port, url):
         'port': port,
     }
     s = Server(host)
-    # deploy_cmd(s, url, '1.0')
-    s.generate_passwd()
+    deploy_cmd(s, url, '1.0')
+    # s.generate_passwd()

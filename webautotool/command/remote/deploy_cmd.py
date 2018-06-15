@@ -6,9 +6,8 @@ def deploy_cmd(server, url, ver):
     log = logger('deploy')
     log.info("Deploying...")
     first_deploy = False
-    proj_name = url.split("/")[1].replace(".git","")
-    proj_dir = 'web-%s' % proj_name
-    dest_dir =  '/opt/web/%s' % proj_dir
+    proj_name = 'web_%s' % url.split("/")[1].replace(".git","")
+    dest_dir =  '/opt/web/%s' % proj_name
     if not server.check_remote_file(dest_dir):
         first_deploy = True
     if first_deploy:
