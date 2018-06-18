@@ -86,10 +86,10 @@ class Server(object):
         log.info('Generate password')
         passwd = self.generate_passwd()
         log.info('Update file config connect between PHP and MySQL')
-        cmd = ['sed', '-i', '\'s/\$host =/\$host = {}/g;'
-                            's/\$user =/\$user = {}/g;'
-                            's/\$pass =/\$pass = {}/g;'
-                            's/\$db =/\$db = {}/g\''.format(host, db_user,
+        cmd = ['sed', '-i', "\"s/\$host =/\$host = \'{}\'\;/g;"
+                              "s/\$user =/\$user = \'{}\'\;/g;"
+                              "s/\$pass =/\$pass = \'{}\'\;/g;"
+                              "s/\$db =/\$db = \'{}\'\;/g\"".format(host, db_user,
                                                     passwd, db_name), php]
         self.execute(cmd)
         log.info('Create user database')
@@ -117,7 +117,6 @@ class Server(object):
                         db_name, '<', db.decode('UTF-8')
                     ]
                     self.execute(cmd)
-                    print (db.decode('UTF-8'))
 
     def create_user(self,user, host, passwd):
         log = logger('create user')
