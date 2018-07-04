@@ -14,7 +14,9 @@ setup(
     install_requires=[
         'click>=6.0',
         'colorlog',
-        'sh'
+        'sh',
+        'requests',
+        'pyyaml'
     ],
     entry_points='''
         [console_scripts]

@@ -3,22 +3,38 @@
 from random import choice
 import string
 from sh import ssh, ErrorReturnCode_1
+import requests
 
 from webautotool.config.log import logger
+from webautotool.config.user import UserConfig
+
 
 class Server(object):
 
     def __init__(self, host, timeout=60):
-        self.user = host["user"]
-        self.address = host["address"]
-        self.port = host["port"]
-        host_ssh = '%s@%s' % (self.user, self.address)
+        self.user =  UserConfig()
+        self.serverConfig(host)
+        host_ssh = '%s@%s' % (self.user_host, self.address)
         self.ssh = ssh.bake( host_ssh, '-p', self.port, '-A',
                             '-o', 'UserKnownHostsFile=/dev/null',
                             '-o', 'StrictHostKeyChecking=no',
                             '-o', 'BatchMode=yes',
                             '-o', 'PasswordAuthentication=no',
                             '-o', 'ConnectTimeout=%s' % timeout)
+
+    def serverConfig(self, host):
+        log = logger("Server configuration ")
+        url = self.user.manager['manager']['url']
+        api = '{}/api/hosts/search/{}'.format(url, host)
+        response = requests.get(api)
+        if requests.codes.ok:
+            host = response.json()
+        if not host['success']:
+            log.error("Host {} not found on manager".format(host))
+            return
+        self.address = host['data']['ip'] or ''
+        self.port = host['data']['port'] or ''
+        self.user_host = 'web'
 
     def execute(self, cmd, follow=False, print_follow=False):
 
@@ -43,15 +59,15 @@ class Server(object):
 
         return result
 
-    def check_remote_file(self, filepath):
+    def check_remote_file(self, filepath, follow=False):
         try:
-            self.execute(['test', '-e', filepath])
+            self.execute(['test', '-e', filepath], follow)
             exists = True
         except ErrorReturnCode_1:
             exists = False
         return exists
 
-    def git_clone(self, url, dest_dir, version='1.0'):
+    def git_clone(self, url, dest_dir, version='1.0', follow=False):
         log = logger('git clone')
 
         log.info("Clonning project from github")
@@ -61,28 +77,28 @@ class Server(object):
             url, dest_dir,
             '--branch', version
         ]
-        self.execute(cmd)
+        self.execute(cmd, follow)
 
-    def git_pull(self, version='1.0', proj_path=None):
+    def git_pull(self, version='1.0', inst_path=None, follow=False):
         log = logger('git pull')
-        if not self.check_remote_file(proj_path):
+        if not self.check_remote_file(inst_path):
             log.ERROR("Don't found directory of project")
             return
         log.info("Pulling project...")
         cmd = [
             'git',
             '-C',
-            proj_path,
+            inst_path,
             'pull', 'origin',
             version
         ]
-        self.execute(cmd)
+        self.execute(cmd, follow)
 
-    def create_db(self, php, proj_name, host='127.0.0.1'):
+    def create_db(self, php, db_name, instance_name, host='127.0.0.1', follow=False):
+        config_php = php + "/lib/db.php"
         log = logger('create database')
 
-        if proj_name:
-            db_user = db_name = proj_name
+        db_user = db_name
         log.info('Generate password')
         passwd = self.generate_passwd()
         log.info('Update file config connect between PHP and MySQL')
@@ -90,8 +106,8 @@ class Server(object):
                               "s/\$user =/\$user = \'{}\'\;/g;"
                               "s/\$pass =/\$pass = \'{}\'\;/g;"
                               "s/\$db =/\$db = \'{}\'\;/g\"".format(host, db_user,
-                                                    passwd, db_name), php]
-        self.execute(cmd)
+                                                    passwd, db_name), config_php]
+        self.execute(cmd, follow)
         log.info('Create user database')
         self.create_user(db_user, host, passwd)
         log.info('Create database {}'.format(db_name))
@@ -99,16 +115,16 @@ class Server(object):
             'mysqladmin',
             'create', db_name
         ]
-        self.execute(cmd)
+        self.execute(cmd, follow)
         log.info('Set grant all on database for user')
         self.grant_user(db_user, host, db_name)
-        dir_input = '/opt/web/{}/db/'.format(proj_name)
+        dir_input = '/opt/web/{}/db/'.format(instance_name)
         if self.check_remote_file(dir_input):
             cmd = [
                 'find', dir_input,
                 '-name', '*.sql'
             ]
-            list_db = self.execute(cmd)
+            list_db = self.execute(cmd, follow)
             log.info('Restore data to database')
             for db in list_db.split('\n'):
                 if db:
@@ -116,9 +132,9 @@ class Server(object):
                         'mysql', '--database',
                         db_name, '<', db.decode('UTF-8')
                     ]
-                    self.execute(cmd)
+                    self.execute(cmd, follow)
 
-    def create_user(self,user, host, passwd):
+    def create_user(self,user, host, passwd, follow=False):
         log = logger('create user')
 
         query = "CREATE USER \'{}\'@\'{}\' " \
@@ -128,9 +144,9 @@ class Server(object):
             'mysql',
             '--execute=\"%s\"'% query
         ]
-        self.execute(cmd)
+        self.execute(cmd, follow)
 
-    def grant_user(self, user, host, db_name):
+    def grant_user(self, user, host, db_name, follow=False):
         log = logger('grant user')
         query = "GRANT ALL ON {}.* TO '{}'@'{}'".format(db_name, user, host)
         log.debug('Set grant all on database for user \n{}'.format(query))
@@ -138,7 +154,7 @@ class Server(object):
             'mysql',
             '--execute=\'%s\'' % query
         ]
-        self.execute(cmd)
+        self.execute(cmd, follow)
 
     def generate_passwd(self):
         alphabet = string.ascii_letters + string.digits
