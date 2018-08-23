@@ -1,0 +1,8 @@
+---
+- name: Install wazuh manager
+  tags: [wazuh_manager]
+  include: wazuh_manager.yml
+
+- name: Install wazuh agent
+  tags: [wazuh_agent]
+  include: wazuh_agent.yml

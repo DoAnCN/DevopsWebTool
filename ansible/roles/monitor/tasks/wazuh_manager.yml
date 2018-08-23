@@ -1,0 +1,47 @@
+---
+
+- name: Install Wazuh repository key
+  apt-key: url=https://packages.wazuh.com/key/GPG-KEY-WAZUH
+
+- name: Add Wazuh repository
+  apt-repository:
+    repo: deb https://packages.wazuh.com/3.x/apt/ {{ ansible_distribution_release }} main
+    state: present
+    update_cache: yes
+
+- name: Install Wazuh manager
+  apt:
+    name: wazuh-manager
+    state: present
+
+- name: Restart service Wazuh manager
+  service:
+    name: wazuh-manager
+    state: restarted
+
+- name: Install Nodejs repository key
+  apt-key: url=https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+
+- name: Add Nodejs repository
+  apt-repository:
+    repo: deb https://deb.nodesource.com/setup_8.x {{ ansible_distribution_release }} main
+    state: present
+    update_cache: yes
+
+- name: Install Nodejs
+  apt:
+    name: nodejs
+    state: present
+
+- name: Install Wazuh API
+  apt:
+    name: wazuh-a
+    state: present
+
+- name: Restart service Wazuh APi
+  service:
+    name: wazuh-api
+    state: restarted
+
+
+
