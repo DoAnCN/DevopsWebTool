@@ -2,7 +2,7 @@
 
 import click
 import requests
-import json
+from datetime import datetime
 
 from webautotool.config.log import logger
 from webautotool.config.user import UserConfig
@@ -52,6 +52,7 @@ def deploy(ctx, instance_name):
     api_put = '{}/api/instances/update'.format(url)
     data = {"id": "{}".format(instance['data']['id']),
             "user": "{}".format(s.user.manager['manager']['name']),
+            "time" : "{}".format(datetime.now()),
             "status": "RUNNING"}
     response = requests.put(api_put, data)
     if response.status_code == 200:
