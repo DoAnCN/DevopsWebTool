@@ -10,8 +10,12 @@
       setup:
   tasks: []
 
-
 - hosts: all
   tags: [common]
   roles:
     - common
+
+- hosts: monitor
+  tags: [monitor]
+  roles:
+    - monitor

@@ -1,4 +1,5 @@
 ---
+
 - name: Install wazuh manager
   tags: [wazuh_manager]
   include: wazuh_manager.yml
