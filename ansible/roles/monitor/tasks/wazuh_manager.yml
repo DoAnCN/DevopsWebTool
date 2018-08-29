@@ -1,48 +1,90 @@
 ---
 
 - name: Install Wazuh repository key
+  tags: [install_manager]
   apt_key: url=https://packages.wazuh.com/key/GPG-KEY-WAZUH
 
 - name: Add Wazuh repository
+  tags: [install_manager]
   apt_repository:
     repo: deb https://packages.wazuh.com/3.x/apt/ stable main
     state: present
     update_cache: yes
 
 - name: Install Wazuh manager
+  tags: [install_manager]
   apt:
     name: wazuh-manager
     state: present
     update_cache: yes
 
-- name: Restart service Wazuh manager
-  service:
-    name: wazuh-manager
-    state: restarted
-
 - name: Install Nodejs repository key
+  tags: [install_manager]
   apt_key: url=https://deb.nodesource.com/gpgkey/nodesource.gpg.key
 
 - name: Install the nodejs LTS repos
+  tags: [install_manager]
   apt_repository:
     repo: "deb https://deb.nodesource.com/node_8.x {{ ansible_distribution_release }} main"
     state: present
     update_cache: yes
 
 - name: Install Nodejs
+  tags: [install_manager]
   apt:
     name: nodejs
     state: present
 
 - name: Install Wazuh API
+  tags: [install_manager]
   apt:
     name: wazuh-api
     state: present
 
+
 - name: Restart service Wazuh APi
+  tags: [install_manager]
   service:
     name: wazuh-api
     state: restarted
 
+- name: Remove old ossec.conf and authencation user
+  tags: [manager_conf]
+  file:
+    path: "/var/ossec/{{ item }}"
+    state: absent
+  with_items:
+    - etc/ossec.conf
+    - api/configuration/auth/user
 
+- name: Configure ossec.conf
+  tags: [manager_conf]
+  template:
+    src: wazuh_manager_config.j2
+    dest: "/var/ossec/etc/ossec.conf"
+    owner: root
+    group: ossec
+    mode: 0640
+  notify: restart wazuh-manager
+
+- name: Wazuh-API User
+  tags: [api_user]
+  template:
+    src: api_user.j2
+    dest: "/var/ossec/api/configuration/auth/user"
+    owner: root
+    group: root
+    mode: 0750
+  no_log: true
+  notify: restart wazuh-api
+
+- name: Ensure Wazuh Manager, wazuh API service are started and enabled
+  tags: [api_user]
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  with_items:
+    - wazuh-manager
+    - wazuh-api
 

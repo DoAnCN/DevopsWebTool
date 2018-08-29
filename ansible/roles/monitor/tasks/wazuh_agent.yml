@@ -1,16 +1,46 @@
 ---
 
 - name: Install Wazuh repository key
+  tags: [install_agent]
   apt_key: url=https://packages.wazuh.com/key/GPG-KEY-WAZUH
 
 - name: Add Wazuh repository
+  tags: [install_agent]
   apt_repository:
     repo: deb https://packages.wazuh.com/3.x/apt/ stable main
     state: present
     update_cache: yes
 
 - name: Install Wazuh agent
+  tags: [install_agent]
   apt:
     name: wazuh-agent
     state: present
     update_cache: yes
+
+- name: Remove old ossec.conf
+  tags: [agent_conf]
+  file:
+    path: "/var/ossec/{{ item }}"
+    state: absent
+  with_items:
+    - etc/ossec.conf
+
+- name: Configure ossec.conf
+  tags: [agent_conf]
+  template:
+    src: wazuh_agent_config.j2
+    dest: "/var/ossec/etc/ossec.conf"
+    owner: root
+    group: ossec
+    mode: 0640
+  notify: restart wazuh-agent
+
+- name: Ensure Wazuh agent is started and enabled
+  tags: [api_user]
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  with_items:
+    - wazuh-agent

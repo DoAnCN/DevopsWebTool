@@ -1,0 +1,77 @@
+# Wazuh agent config
+
+wazuh_agent:
+  manager_ip: 192.168.100.240
+  manager_port: 1514
+  manager_protocol: udp
+  noti_time: 10
+  time_reconnect: 60
+  auto_restart: "yes"
+  crypto_method: aes
+  profile_conf:
+  buffer:
+    disabled: "no"
+    size: 5000
+    events_per_sec: 500
+  syscheck:
+    disabled: "no"
+    frequency: 43200
+    scan_on_start: "yes"
+    auto_ignore: "no"
+    nodiff: /etc/ssl/private.key
+    remove_old_diff: "yes"
+    restart_audit: "yes"
+    ignore_files:
+      - /etc/mtab
+      - /etc/hosts.deny
+      - /etc/mail/statistics
+      - /etc/random-seed
+      - /etc/random.seed
+      - /etc/adjtime
+      - /etc/httpd/logs
+      - /etc/utmpx
+      - /etc/wtmpx
+      - /etc/cups/certs
+      - /etc/dumpdates
+      - /etc/svc/volatile
+      - /sys/kernel/security
+      - /sys/kernel/debug
+    directories:
+      - dirs: /etc,/usr/bin,/usr/sbin
+        check: 'check_all="yes"'
+      - dirs: /bin,/sbin,/boot
+        check: 'check_all="yes"'
+  rootcheck:
+    disabled: "no"
+    check:
+      unixaudit: "yes"
+      files: "yes"
+      trojans: "yes"
+      dev: "yes"
+      sys: "yes"
+      pids: "yes"
+      ports: "yes"
+      if: "yes"
+    rootkit_file: rootkit_files.txt
+    rootkit_trojans: rootkit_trojans.txt
+    sys_audits:
+      - system_audit_rcl.txt
+      - system_audit_ssh.txt
+    skip_nfs: "yes"
+  localfiles:
+    - log_format: syslog
+      location: auth.log
+    - log_format: syslog
+      location: syslog
+    - log_format: syslog
+      location: dpkg.log
+    - log_format: command
+      command: df -P
+    - log_format: full_command
+      command: netstat -tulpn | sed 's/\([[:alnum:]]\+\)\ \+[[:digit:]]\+\ \+[[:digit:]]\+\ \+\(.*\):\([[:digit:]]*\)\ \+\([0-9\.\:\*]\+\).\+\ \([[:digit:]]*\/[[:alnum:]\-]*\).*/\1 \2 == \3 == \4 \5/' | sort -k 4 -g | sed 's/ == \(.*\) ==/:\1/' | sed 1,2d
+      alias: netstat listening ports
+      frequency: 360
+    - log_format: full_command
+      command: last -n 20
+#    - log_format: mysql_l
+#      location: /var/log/ossec/syslog/mysql.log

@@ -1,0 +1,158 @@
+# Wazuh agent config
+
+wazuh_manager:
+  wazuh_api_user:
+    - titi:$apr1$8uQuBgtM$LA6R9pWguSc/bnWc8qHhV.
+  global:
+    json_output: "yes"
+    alerts_log: "yes"
+    logall: "no"
+    logall_json: "no"
+    email_noti: "no"
+    smtp_server: smtp.example.wazuh.com
+    email_from: ossecm@example.wazuh.com
+    email_to: recipient@example.wazuh.com
+    email_maxperhour: 12
+    queue_size: 131072
+    white_lists:
+      - 127.0.0.1
+      - ^localhost.localdomain$
+      - 8.8.8.8
+      - 8.8.4.4
+  alert:
+    log_level: 3
+    email_level: 12
+  format_log: plain
+  remote:
+    connection: secure
+    port: 1514
+    protocol: udp
+    queue_size: 131072
+  rootcheck:
+    disabled: "no"
+    check:
+      unixaudit: "yes"
+      files: "yes"
+      trojans: "yes"
+      dev: "yes"
+      sys: "yes"
+      pids: "yes"
+      ports: "yes"
+      if: "yes"
+    frequency: 43200
+    rootkit_file: rootkit_files.txt
+    rootkit_trojans: rootkit_trojans.txt
+    sys_audits:
+      - system_audit_rcl.txt
+      - system_audit_ssh.txt
+    skip_nfs: "yes"
+  syscheck:
+    disabled: "no"
+    frequency: 43200
+    scan_on_start: "yes"
+    alert_new_files: "yes"
+    auto_ignore:
+      value: "no"
+      frequency: 10
+      timeframe: 3600
+    nodiff: /etc/ssl/private.key
+    remove_old_diff: "yes"
+    restart_audit: "yes"
+    skip_nfs: "yes"
+    ignore_files:
+      - /etc/mtab
+      - /etc/hosts.deny
+      - /etc/mail/statistics
+      - /etc/random-seed
+      - /etc/random.seed
+      - /etc/adjtime
+      - /etc/httpd/logs
+      - /etc/utmpx
+      - /etc/wtmpx
+      - /etc/cups/certs
+      - /etc/dumpdates
+      - /etc/svc/volatile
+      - /sys/kernel/security
+      - /sys/kernel/debug
+    directories:
+      - dirs: /etc,/usr/bin,/usr/sbin
+        check: 'check_all="yes"'
+      - dirs: /bin,/sbin,/boot
+        check: 'check_all="yes"'
+  commands:
+    - name:  disable-account
+      executable: disable-account.sh
+      expect: user
+      timeout_allowed: "yes"
+    - name: restart-ossec
+      executable: restart-ossec.sh
+      expect:
+    - name: firewall-drop
+      executable: firewall-drop.sh
+      expect: srcip
+      timeout_allowed: "yes"
+    - name: host-deny
+      executable: host-deny.sh
+      expect: srcip
+      timeout_allowed: "yes"
+    - name: route-null
+      executable: route-null.sh
+      expect: srcip
+      timeout_allowed: "yes"
+    - name: win_route-null
+      executable: route-null.cmd
+      expect: srcip
+      timeout_allowed: "yes"
+  localfiles:
+    - log_format: syslog
+      location: active-responses.log
+    - log_format: syslog
+      location: auth.log
+    - log_format: syslog
+      location: syslog
+    - log_format: syslog
+      location: dpkg.log
+    - log_format: syslog
+      location: kern.log
+    - log_format: command
+      command: df -P
+      frequency: 360
+    - log_format: full_command
+      command: netstat -tulpn | sed 's/\([[:alnum:]]\+\)\ \+[[:digit:]]\+\ \+[[:digit:]]\+\ \+\(.*\):\([[:digit:]]*\)\ \+\([0-9\.\:\*]\+\).\+\ \([[:digit:]]*\/[[:alnum:]\-]*\).*/\1 \2 == \3 == \4 \5/' | sort -k 4 -g | sed 's/ == \(.*\) ==/:\1/' | sed 1,2d
+      alias: netstat listening ports
+      frequency: 360
+    - log_format: full_command
+      command: last -n 20
+      frequency: 360
+  rulesets:
+    - decoder_dir: ruleset/decoders
+      rule_dir: ruleset/rules
+      rule_exclude: 0215-policy_rules.xml
+      lists:
+        - etc/lists/audit-keys
+        - etc/lists/amazon/aws-sources
+        - etc/lists/amazon/aws-eventnames
+    - decoder_dir: etc/decoders
+      rule_dir: etc/rules
+  auth:
+    disabled: "no"
+    port: 1515
+    use_source_ip: "yes"
+    force_insert: "yes"
+    force_time: 0
+    purge: "yes"
+    use_password: "no"
+    limit_maxagents: "yes"
+    ciphers: HIGH:!ADH:!EXP:!MD5:!RC4:!3DES:!CAMELLIA:@STRENGTH
+    ssl_verify_host: "no"
+    ssl_manager_cert: /var/ossec/etc/sslmanager.cert
+    ssl_manager_key: /var/ossec/etc/sslmanager.key
+    ssl_auto_negotiate: "no"
+  cluster:
+    name: wazuh
+    node_name: node01
+    node_type: master
+    port: 1516
+    bind_addr: 0.0.0.0
+    hidden: "no"
+    disabled: "yes"

@@ -1,0 +1,19 @@
+---
+
+- name: restart wazuh-agent
+  service:
+    name: wazuh-agent
+    state: restarted
+    enabled: yes
+
+- name: restart wazuh-manager
+  service:
+    name: wazuh-manager
+    state: restarted
+    enabled: yes
+
+- name: restart wazuh-api
+  service:
+    name: wazuh-api
+    state: restarted
+    enabled: yes
