@@ -1,0 +1,104 @@
+<ossec_config>
+  <client>
+    <server>
+      <address>{{ wazuh_agent.manager_ip }}</address>
+      <port>{{ wazuh_agent.manager_port }}</port>
+      <protocol>{{ wazuh_agent.manager_protocol }}</protocol>
+    </server>
+    <config-profile>{{ wazuh_agent.profile_conf }}</config-profile>
+    <notify_time>{{ wazuh_agent.noti_time }}</notify_time>
+    <time-reconnect>{{ wazuh_agent.time_reconnect }}</time-reconnect>
+    <auto_restart>{{ wazuh_agent.auto_restart }}</auto_restart>
+    <crypto_method>{{ wazuh_agent.crypto_method }}</crypto_method>
+  </client>
+
+{% if wazuh_agent.buffer is defined %}
+  <client_buffer>
+    <!-- Agent buffer options -->
+    <disabled>{{ wazuh_agent.buffer.disabled }}</disabled>
+    <queue_size>{{ wazuh_agent.buffer.size }}</queue_size>
+    <events_per_second>{{ wazuh_agent.buffer.events_per_sec }}</events_per_second>
+  </client_buffer>
+{% endif %}
+
+{% if wazuh_agent.syscheck is defined %}
+  <syscheck>
+    <disabled>{{ wazuh_agent.syscheck.disabled }}</disabled>
+
+    <!-- Frequency that syscheck is executed-->
+    <frequency>{{ wazuh_agent.syscheck.frequency }}</frequency>
+
+    <scan_on_start>{{ wazuh_agent.syscheck.scan_on_start }}</scan_on_start>
+
+    <!-- Directories to check  (perform all possible verifications) -->
+{%if wazuh_agent.syscheck.directories is defined %}
+{% for directory in wazuh_agent.syscheck.directories %}
+    <directories {{ directory.check }}>{{ directory.dirs }}</directories>
+{%endfor%}
+{%endif%}
+
+    <auto_ignore>{{ wazuh_agent.syscheck.auto_ignore }}</auto_ignore>
+
+    <!-- Files/directories to ignore -->
+{%if wazuh_agent.syscheck.ignore_files is defined %}
+{% for ignore_file in wazuh_agent.syscheck.ignore_files %}
+    <ignore>{{ ignore_file }}</ignore>
+{% endfor %}
+{%endif%}
+
+    <!-- Check the file, but never compute the diff -->
+    <nodiff>{{ wazuh_agent.syscheck.nodiff }}</nodiff>
+
+     <!-- Remove not monitored files -->
+    <remove_old_diff>{{ wazuh_agent.syscheck.remove_old_diff }}</remove_old_diff>
+
+    <!-- Allow the system to restart Auditd after installing the plugin -->
+    <restart_audit>{{ wazuh_agent.syscheck.restart_audit }}</restart_audit>
+  </syscheck>
+{% endif%}
+
+{% if wazuh_agent.rootcheck %}
+  <rootcheck>
+    <disabled>{{ wazuh_agent.rootcheck.disabled }}</disabled>
+    <check_unixaudit>{{ wazuh_agent.rootcheck.check.unixaudit }}</check_unixaudit>
+    <check_files>{{ wazuh_agent.rootcheck.check.files }}</check_files>
+    <check_trojans>{{ wazuh_agent.rootcheck.check.trojans }}</check_trojans>
+    <check_dev>{{ wazuh_agent.rootcheck.check.dev }}</check_dev>
+    <check_sys>{{ wazuh_agent.rootcheck.check.sys }}</check_sys>
+    <check_pids>{{ wazuh_agent.rootcheck.check.pids }}</check_pids>
+    <check_ports>{{ wazuh_agent.rootcheck.check.ports }}</check_ports>
+    <check_if>{{ wazuh_agent.rootcheck.check.if }}</check_if>
+
+    <rootkit_files>/var/ossec/etc/shared/{{ wazuh_agent.rootcheck.rootkit_file }}</rootkit_files>
+    <rootkit_trojans>/var/ossec/etc/shared/{{ wazuh_agent.rootcheck.rootkit_trojans }}</rootkit_trojans>
+{% for sys_audit in wazuh_agent.rootcheck.sys_audits %}
+    <system_audit>/var/ossec/etc/shared/{{ sys_audit }}</system_audit>
+{% endfor %}
+
+    <skip_nfs>{{ wazuh_agent.rootcheck.skip_nfs }}</skip_nfs>
+  </rootcheck>
+{% endif %}
+
+
+  <!-- Files to monitor (localfiles) -->
+{% for localfile in wazuh_agent.localfiles %}
+  <localfile>
+    <log_format>{{ localfile.log_format }}</log_format>
+{% if localfile.log_format == 'command' or localfile.log_format == 'full_command' %}
+{% if localfile.frequency is defined %}
+    <frequency>{{ localfile.frequency }}</frequency>
+{% endif %}
+{% if localfile.alias is defined %}
+    <alias>{{ localfile.alias }}</alias>
+{% endif %}
+    <command>{{ localfile.command }}</command>
+{% else%}
+    <location>/var/log/{{ localfile.location }}</location>
+{% if localfile.log_format == 'json' and localfile.label is defined %}
+    <lable key='{{ localfile.lable.key }}'>{{ localfile.lable.value }}</lable>
+{% endif %}
+{%endif%}
+  </localfile>
+
+{% endfor %}
+</ossec_config>

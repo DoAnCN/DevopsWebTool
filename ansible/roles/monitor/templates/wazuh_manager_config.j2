@@ -1,0 +1,215 @@
+<ossec_config>
+  <global>
+    <jsonout_output>{{ wazuh_manager.global.json_output }}</jsonout_output>
+    <alerts_log>{{ wazuh_manager.global.alerts_log }}</alerts_log>
+    <logall>{{ wazuh_manager.global.logall }}</logall>
+    <logall_json>{{ wazuh_manager.global.logall_json }}</logall_json>
+    <email_notification>{{ wazuh_manager.global.email_noti }}</email_notification>
+    <smtp_server>{{ wazuh_manager.global.smtp_server }}</smtp_server>
+    <email_from>{{ wazuh_manager.global.email_from }}</email_from>
+    <email_to>{{ wazuh_manager.global.email_to }}</email_to>
+    <email_maxperhour>{{ wazuh_manager.global.email_maxperhour }}</email_maxperhour>
+    <queue_size>{{ wazuh_manager.global.queue_size }}</queue_size>
+  </global>
+
+  <alerts>
+    <log_alert_level>{{ wazuh_manager.alert.log_level }}</log_alert_level>
+    <email_alert_level>{{ wazuh_manager.alert.email_level }}</email_alert_level>
+  </alerts>
+    <!-- Choose between "plain", "json", or "plain,json" for the format of internal logs -->
+  <logging>
+    <log_format>{{ wazuh_manager.format_log }}</log_format>
+  </logging>
+
+  <remote>
+    <connection>{{ wazuh_manager.remote.connection }}</connection>
+    <port>{{ wazuh_manager.remote.port }}</port>
+    <protocol>{{ wazuh_manager.remote.protocol }}</protocol>
+    <queue_size>{{ wazuh_manager.remote.queue_size }}</queue_size>
+  </remote>
+
+  <!-- Policy monitoring -->
+  <rootcheck>
+    <disabled>{{ wazuh_manager.rootcheck.disabled }}</disabled>
+    <check_unixaudit>{{ wazuh_manager.rootcheck.check.unixaudit }}</check_unixaudit>
+    <check_files>{{ wazuh_manager.rootcheck.check.files }}</check_files>
+    <check_trojans>{{ wazuh_manager.rootcheck.check.trojans }}</check_trojans>
+    <check_dev>{{ wazuh_manager.rootcheck.check.dev }}</check_dev>
+    <check_sys>{{ wazuh_manager.rootcheck.check.sys }}</check_sys>
+    <check_pids>{{ wazuh_manager.rootcheck.check.pids }}</check_pids>
+    <check_ports>{{ wazuh_manager.rootcheck.check.ports }}</check_ports>
+    <check_if>{{ wazuh_manager.rootcheck.check.if }}</check_if>
+
+    <!-- Frequency that rootcheck is executed -->
+    <frequency>{{ wazuh_manager.rootcheck.frequency }}</frequency>
+
+    <rootkit_files>/var/ossec/etc/rootcheck/{{ wazuh_manager.rootcheck.rootkit_file }}</rootkit_files>
+    <rootkit_trojans>/var/ossec/etc/rootcheck/{{ wazuh_manager.rootcheck.rootkit_trojans }}</rootkit_trojans>
+
+{% for sys_audit in wazuh_manager.rootcheck.sys_audits %}
+    <system_audit>/var/ossec/etc/rootcheck/{{ sys_audit }}</system_audit>
+{% endfor %}
+
+    <skip_nfs>{{ wazuh_manager.rootcheck.skip_nfs }}</skip_nfs>
+  </rootcheck>
+
+  <!-- File integrity monitoring -->
+  <syscheck>
+    <disabled>{{ wazuh_manager.syscheck.disabled }}</disabled>
+
+    <!-- Frequency that syscheck is executed default every 12 hours -->
+    <frequency>{{ wazuh_manager.syscheck.frequency }}</frequency>
+
+    <scan_on_start>{{ wazuh_manager.syscheck.scan_on_start }}</scan_on_start>
+
+    <!-- Generate alert when new file detected -->
+    <alert_new_files>{{ wazuh_manager.syscheck.alert_new_files }}</alert_new_files>
+
+    <!-- Don't ignore files that change more than 'frequency' times -->
+    <auto_ignore frequency="{{ wazuh_manager.syscheck.auto_ignore.frequency }}" timeframe="{{ wazuh_manager.syscheck.auto_ignore.timeframe }}">{{ wazuh_manager.syscheck.auto_ignore.value }}</auto_ignore>
+
+    <!-- Directories to check  (perform all possible verifications) -->
+{%if wazuh_manager.syscheck.directories is defined %}
+{% for directory in wazuh_manager.syscheck.directories %}
+    <directories {{ directory.check }}>{{ directory.dirs }}</directories>
+{%endfor%}
+{%endif%}
+
+    <!-- Files/directories to ignore -->
+{%if wazuh_manager.syscheck.ignore_files is defined %}
+{% for ignore_file in wazuh_manager.syscheck.ignore_files %}
+    <ignore>{{ ignore_file }}</ignore>
+{% endfor %}
+{%endif%}
+
+    <!-- Check the file, but never compute the diff -->
+    <nodiff>{{ wazuh_manager.syscheck.nodiff }}</nodiff>
+
+    <skip_nfs>{{ wazuh_manager.syscheck.skip_nfs }}</skip_nfs>
+
+    <!-- Remove not monitored files -->
+    <remove_old_diff>{{ wazuh_manager.syscheck.remove_old_diff }}</remove_old_diff>
+
+    <!-- Allow the system to restart Auditd after installing the plugin -->
+    <restart_audit>{{ wazuh_manager.syscheck.restart_audit }}</restart_audit>
+  </syscheck>
+
+  <!-- Active response -->
+{% if wazuh_manager.global.white_lists is defined %}
+  <global>
+{% for white_list in wazuh_manager.global.white_lists %}
+    <white_list>{{ white_list }}</white_list>
+{% endfor %}
+  </global>
+{%endif%}
+
+{% if wazuh_manager.commands is defined %}
+{% for command in wazuh_manager.commands %}
+  <command>
+    <name>{{ command.name }}</name>
+    <executable>{{ command.executable }}</executable>
+{% if wazuh_manager.timeout_allowed is defined %}
+    <timeout_allowed>{{ wazuh_manager.timeout_allowed }}</timeout_allowed>
+{% endif%}
+  </command>
+{% endfor %}
+{% endif%}
+
+
+  <!--
+  <active-response>
+    active-response options here
+  </active-response>
+  -->
+
+  <!-- Log analysis -->
+{% if wazuh_manager.localfiles is defined %}
+{% for localfile in wazuh_manager.localfiles %}
+  <localfile>
+    <log_format>{{ localfile.log_format }}</log_format>
+{% if localfile.log_format == 'command' or localfile.log_format == 'full_command' %}
+    <command>{{ localfile.command }}</command>
+{% if localfile.frequency is defined %}
+    <frequency>{{ localfile.frequency }}</frequency>
+{% endif %}
+{% if localfile.alias is defined %}
+    <alias>{{localfile.alias}}</alias>
+{% endif %}
+{% else %}
+    <location>/var/log/{{ localfile.location }}</location>
+{% endif %}
+  </localfile>
+
+{% endfor %}
+{% endif %}
+
+{% if wazuh_manager.rulesets is defined %}
+  <ruleset>
+{% for ruleset in wazuh_manager.rulesets %}
+
+    <decoder_dir>{{ ruleset.decoder_dir }}</decoder_dir>
+    <rule_dir>{{ ruleset.rule_dir }}</rule_dir>
+{% if ruleset.rule_exclude is defined %}
+    <rule_exclude>{{ ruleset.rule_exclude }}</rule_exclude>
+{% endif %}
+{% if ruleset.lists is defined %}
+{% for list in ruleset.lists %}
+    <list>{{ list }}</list>
+{% endfor %}
+{% endif %}
+{% endfor %}
+  </ruleset>
+  {% endif %}
+
+  <!-- Configuration for ossec-authd
+    To enable this service, run:
+    ossec-control enable auth
+  -->
+{% if wazuh_manager.auth is defined %}
+  <auth>
+    <disabled>{{ wazuh_manager.auth.disabled }}</disabled>
+    <port>{{ wazuh_manager.auth.port }}</port>
+    <use_source_ip>{{ wazuh_manager.auth.use_source_ip }}</use_source_ip>
+    <force_insert>{{ wazuh_manager.auth.force_insert }}</force_insert>
+    <force_time>{{ wazuh_manager.auth.force_time }}</force_time>
+    <purge>{{ wazuh_manager.auth.purge }}</purge>
+    <use_password>{{ wazuh_manager.auth.use_password }}</use_password>
+    <limit_maxagents>{{ wazuh_manager.auth.limit_maxagents }}</limit_maxagents>
+    <ciphers>{{ wazuh_manager.auth.ciphers }}</ciphers>
+
+{% if wazuh_manager.auth.ssl_agent_ca is defined %}
+    <ssl_agent_ca>{{ wazuh_manager.auth.ssl_agent_ca }}</ssl_agent_ca>
+{% endif %}
+
+    <ssl_verify_host>{{ wazuh_manager.auth.ssl_verify_host }}</ssl_verify_host>
+    <ssl_manager_cert>{{ wazuh_manager.auth.ssl_manager_cert }}</ssl_manager_cert>
+    <ssl_manager_key>{{ wazuh_manager.auth.ssl_manager_key }}</ssl_manager_key>
+    <ssl_auto_negotiate>{{ wazuh_manager.auth.ssl_auto_negotiate }}</ssl_auto_negotiate>
+  </auth>
+{% endif %}
+
+{% if wazuh_manager.cluster is defined %}
+  <cluster>
+    <name>{{ wazuh_manager.cluster.name }}</name>
+    <node_name>{{ wazuh_manager.cluster.node_name }}</node_name>
+    <node_type>{{ wazuh_manager.cluster.node_type }}</node_type>
+{% if wazuh_manager.cluster.key is defined %}
+    <key>{{ wazuh_manager.cluster.key }}</key>
+{% endif %}
+    <port>{{ wazuh_manager.cluster.port }}</port>
+    <bind_addr>{{ wazuh_manager.cluster.bind_addr }}</bind_addr>
+
+{% if wazuh_manager.cluster.nodes is defined %}
+    <nodes>
+    <!-- NODE_IP -->
+{% for node in wazuh_manager.cluster.nodes %}
+        <node>{{ node }}</node>
+{% endfor %}
+    </nodes>
+{% endif %}
+    <hidden>{{ wazuh_manager.cluster.hidden }}</hidden>
+    <disabled>{{ wazuh_manager.cluster.disabled }}</disabled>
+  </cluster>
+{% endif %}
+
+</ossec_config>
