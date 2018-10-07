@@ -94,7 +94,7 @@ class Server(object):
         ]
         self.execute(cmd, follow)
 
-    def create_db(self, php, db_name, instance_name, host='127.0.0.1', follow=False):
+    def create_db(self, php, db_name, instance_name, host='localhost', follow=False):
         config_php = php + "/lib/db.php"
         log = logger('create database')
 

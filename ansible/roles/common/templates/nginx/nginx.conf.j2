@@ -2,6 +2,8 @@
 server {
 	listen {{ item.port }};
 	server_name {{ item.domain }};
+	error_log /var/log/nginx/{{ item.name }}_error.log;
+	access_log /var/log/nginx/{{ item.name }}_access.log;
 
 	# SSL configuration
 	#
