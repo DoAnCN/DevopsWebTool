@@ -1,6 +1,6 @@
 ---
 
-- name: install package mysql
+- name: Install package mysql
   apt:
     name: "{{ item }}"
     update_cache: yes

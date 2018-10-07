@@ -23,7 +23,7 @@
     mode: 0775
     state: directory
 
-- name: add gitlab known_hosts for odoo
+- name: add gitlab known_hosts for 'web' user
   tags: [ github-known-hosts ]
   lineinfile:
     dest: /opt/web/.ssh/known_hosts

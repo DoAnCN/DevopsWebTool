@@ -1,6 +1,12 @@
 ---
 
-- name: install enviroment php
+- name: Add PHP7.2 repository
+  apt_repository:
+    repo: "ppa:ondrej/php"
+    state: present
+    update_cache: yes
+
+- name: Install enviroment php
   apt:
     name: "{{ item }}"
     state: present
@@ -8,6 +14,6 @@
     cache_valid_time: 3600
     force: yes
   with_items:
-    - php7.0
-    - php7.0-fpm
-    - php7.0-mysql
+    - php7.2
+    - php7.2-fpm
+    - php7.2-mysql

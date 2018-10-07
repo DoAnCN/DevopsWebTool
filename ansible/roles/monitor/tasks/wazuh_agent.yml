@@ -37,7 +37,7 @@
   notify: restart wazuh-agent
 
 - name: Ensure Wazuh agent is started and enabled
-  tags: [api_user]
+  tags: [install_agent,agent_conf]
   service:
     name: "{{ item }}"
     enabled: yes
