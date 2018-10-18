@@ -130,7 +130,7 @@ class Server(object):
                 if db:
                     cmd = [
                         'mysql', '--database',
-                        db_name, '<', db.decode('UTF-8')
+                        db_name, '<', db
                     ]
                     self.execute(cmd, follow)
 
