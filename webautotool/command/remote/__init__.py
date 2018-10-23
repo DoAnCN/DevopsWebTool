@@ -36,12 +36,12 @@ def deploy(ctx, instance_name):
     user = UserConfig()
     url = user.manager['manager']['url']
 
-    api_get = '{}/api/instances/search/{}'.format(url, instance_name)
+    api_get = '{0}/api/instances/{1}'.format(url, instance_name)
     response = requests.get(api_get)
     if requests.codes.ok:
         instance = response.json()
     if not instance['success']:
-        log.error("Instance {} not found on manager".format(instance_name))
+        log.error("Instance {0} not found on manager".format(instance_name))
         return
     s = Server(instance['data']['id_host'])
     try:
@@ -50,9 +50,9 @@ def deploy(ctx, instance_name):
         raise
 
     api_put = '{}/api/instances/update'.format(url)
-    data = {"id": "{}".format(instance['data']['id']),
-            "user": "{}".format(s.user.manager['manager']['name']),
-            "time" : "{}".format(datetime.now()),
+    data = {"id": "{0}".format(instance['data']['id']),
+            "user": "{0}".format(s.user.manager['manager']['name']),
+            "time" : "{0}".format(datetime.now()),
             "status": "RUNNING"}
     response = requests.put(api_put, data)
     if response.status_code == 200:

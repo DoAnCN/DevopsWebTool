@@ -25,12 +25,12 @@ class Server(object):
     def serverConfig(self, host):
         log = logger("Server configuration ")
         url = self.user.manager['manager']['url']
-        api = '{}/api/hosts/search/{}'.format(url, host)
+        api = '{0}/api/hosts/{1}'.format(url, host)
         response = requests.get(api)
         if requests.codes.ok:
             host = response.json()
         if not host['success']:
-            log.error("Host {} not found on manager".format(host))
+            log.error("Host {0} not found on manager".format(host))
             return
         self.address = host['data']['ip'] or ''
         self.port = host['data']['port'] or ''
