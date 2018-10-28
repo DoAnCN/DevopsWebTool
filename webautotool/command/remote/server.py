@@ -22,19 +22,15 @@ class Server(object):
                             '-o', 'PasswordAuthentication=no',
                             '-o', 'ConnectTimeout=%s' % timeout)
 
-    def serverConfig(self, host):
+    def     serverConfig(self, host):
         log = logger("Server configuration ")
-        url = self.user.manager['manager']['url']
-        api = '{0}/api/hosts/{1}'.format(url, host)
-        response = requests.get(api)
-        if requests.codes.ok:
-            host = response.json()
-        if not host['success']:
-            log.error("Host {0} not found on manager".format(host))
-            return
-        self.address = host['data']['ip'] or ''
-        self.port = host['data']['port'] or ''
-        self.user_host = 'web'
+        if host:
+            log.info('Configurating host')
+            self.address = host['ip'] or ''
+            self.port = host['port'] or ''
+            self.user_host = 'web'
+        else:
+            log.error('No host to deploy')
 
     def execute(self, cmd, follow=False, print_follow=False):
 

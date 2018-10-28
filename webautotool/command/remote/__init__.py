@@ -36,26 +36,47 @@ def deploy(ctx, instance_name):
     user = UserConfig()
     url = user.manager['manager']['url']
 
-    api_get = '{0}/api/instances/{1}'.format(url, instance_name)
-    response = requests.get(api_get)
-    if requests.codes.ok:
-        instance = response.json()
-    if not instance['success']:
-        log.error("Instance {0} not found on manager".format(instance_name))
+    api_auth = '{0}/api/auth/token/'.format(url)
+    data_auth = {
+        'username': user.manager['manager']['username'],
+        'password': user.manager['manager']['passwd']
+    }
+    response = requests.post(api_auth, data=data_auth)
+    if response.status_code == 400:
+        content = response.json()
+        if 'non_field_errors' in content:
+            log.error(content['non_field_errors'][0])
+            log.warning("Username/password incorrect")
+        if 'username' in content and 'required' in content['username'][0] or \
+                'password' in content and 'required' in content['password'][0]:
+            log.error("Missing username or password")
         return
-    s = Server(instance['data']['id_host'])
-    try:
-        deploy_cmd(s, instance, '1.0')
-    except:
-        raise
-
-    api_put = '{}/api/instances/update'.format(url)
-    data = {"id": "{0}".format(instance['data']['id']),
-            "user": "{0}".format(s.user.manager['manager']['name']),
-            "time" : "{0}".format(datetime.now()),
-            "status": "RUNNING"}
-    response = requests.put(api_put, data)
     if response.status_code == 200:
-        log.info("Deploy done")
-    else:
-        log.info("Can not update into manager")
+        token = response.json()['token']
+    if token:
+        head = {'Authorization': 'JWT {}'.format(token)}
+        api_get = '{0}/api/instances/{1}'.format(url, instance_name)
+        response = requests.get(api_get, headers=head)
+        if response.status_code == 404:
+            log.error("Instance {0} not found on Emoi".format(instance_name))
+            return
+        elif response.status_code == 200:
+            instance = response.json()
+            s = Server(instance['host'])
+            try:
+                deploy_cmd(s, instance, '1.0')
+            except:
+                raise
+
+            data_update = {
+                "usr_deployed": user.manager['manager']['username'],
+                'latest_deploy': datetime.now()
+            }
+
+            api_put = '{0}/api/instances/{1}'.format(url, instance_name)
+            response = requests.put(api_put, data=data_update, headers=head)
+            if response.status_code == 200:
+                log.info("The deployment process has been completed")
+            else:
+                log.warning("Cannot update user deployed instance {0} "
+                            "or deployment time".format(instance_name))

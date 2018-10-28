@@ -8,12 +8,12 @@ def deploy_cmd(server, instance, ver):
 
     first_deploy = False
 
-    inst_name = instance['data']['inst_name']
-    url_remote = instance['data']['url_remote']
-    db_name = instance['data']['db_name']
-    version = instance['data']['version']
+    inst_name = instance['name']
+    url_remote = instance['project']['url']
+    db_name = instance['db_name']
+    version = instance['project_ver']['name']
 
-    dest_dir =  '/opt/web/{}'.format(instance['data']['inst_name'])
+    dest_dir =  '/opt/web/{}'.format(instance['name'])
 
     if not server.check_remote_file(dest_dir):
         first_deploy = True
