@@ -17,8 +17,9 @@
   tags: [common]
   roles:
     - common
+    - monitor
 
-- hosts: monitor
-  tags: [monitor]
+- hosts: manager
+  tags: [managerMonitor]
   roles:
     - monitor
