@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from random import choice
 import string
+from random import choice
 from sh import ssh, ErrorReturnCode_1
-import requests
 
 from webautotool.config.log import logger
 from webautotool.config.user import UserConfig
@@ -22,7 +21,7 @@ class Server(object):
                             '-o', 'PasswordAuthentication=no',
                             '-o', 'ConnectTimeout=%s' % timeout)
 
-    def     serverConfig(self, host):
+    def serverConfig(self, host):
         log = logger("Server configuration ")
         if host:
             log.info('Configurating host')

@@ -10,12 +10,11 @@ from webautotool.command import webautotool as cli
 from webautotool.command.remote.server import Server
 from webautotool.command.remote.deploy_cmd import deploy_cmd
 
+
 @cli.group()
 @click.pass_context
 def remote(ctx, *args, **kw):
-    """
-    Remote to server
-    """
+    """Remote to server"""
     if ctx.invoked_subcommand is None:
         ctx.invoke(deploy, *args, **kw)
 
@@ -27,41 +26,24 @@ def remote(ctx, *args, **kw):
 # @click.option('--instance-name', '-p', default='22',
 #               help='Port number ssh')
 # @click.option('--clone/--no-clone', '-c', is_flag=True, default=False,
-#               help = "Accept clone source code from github")
+#               help = 'Accept clone source code from github')
 @click.argument('instance_name')
 @click.pass_context
 def deploy(ctx, instance_name):
-
+    """Deploy new project or just update source code"""
     log = logger('Deploy log')
     user = UserConfig()
-    url = user.manager['manager']['url']
-
-    api_auth = '{0}/api/auth/token/'.format(url)
-    data_auth = {
-        'username': user.manager['manager']['username'],
-        'password': user.manager['manager']['passwd']
-    }
-    response = requests.post(api_auth, data=data_auth)
-    if response.status_code == 400:
-        content = response.json()
-        if 'non_field_errors' in content:
-            log.error(content['non_field_errors'][0])
-            log.warning("Username/password incorrect")
-        if 'username' in content and 'required' in content['username'][0] or \
-                'password' in content and 'required' in content['password'][0]:
-            log.error("Missing username or password")
-        return
-    if response.status_code == 200:
-        token = response.json()['token']
+    token = user.getToken()
     if token:
         head = {'Authorization': 'JWT {}'.format(token)}
-        api_get = '{0}/api/instances/{1}'.format(url, instance_name)
-        response = requests.get(api_get, headers=head)
-        if response.status_code == 404:
-            log.error("Instance {0} not found on Emoi".format(instance_name))
+        urlEmoi = user.manager['manager']['url']
+        resource = '/api/instances/{0}'.format(instance_name)
+        res = requests.get('{0}/{1}'.format(urlEmoi, resource), headers=head)
+        if res.status_code == 404:
+            log.error('Instance {0} not found on Emoi'.format(instance_name))
             return
-        elif response.status_code == 200:
-            instance = response.json()
+        elif res.status_code == 200:
+            instance = res.json()
             s = Server(instance['host'])
             try:
                 deploy_cmd(s, instance, '1.0')
@@ -69,14 +51,15 @@ def deploy(ctx, instance_name):
                 raise
 
             data_update = {
-                "usr_deployed": user.manager['manager']['username'],
+                'usr_deployed': user.manager['manager']['username'],
                 'latest_deploy': datetime.now()
             }
 
-            api_put = '{0}/api/instances/{1}'.format(url, instance_name)
-            response = requests.put(api_put, data=data_update, headers=head)
-            if response.status_code == 200:
-                log.info("The deployment process has been completed")
+            resource = '/api/instances/{0}'.format(instance_name)
+            res = requests.put('{0}/{1}'.format(urlEmoi, resource),
+                               headers=head, data=data_update)
+            if res.status_code == 200:
+                log.info('The deployment process has been completed')
             else:
-                log.warning("Cannot update user deployed instance {0} "
-                            "or deployment time".format(instance_name))
+                log.warning('Cannot update user deployed instance {0} '
+                            'or deployment time'.format(instance_name))

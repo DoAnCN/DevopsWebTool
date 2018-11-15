@@ -23,5 +23,3 @@ def deploy_cmd(server, instance, ver):
         server.create_db(dest_dir, db_name, inst_name)
     else:
         server.git_pull(ver, dest_dir )
-
-
