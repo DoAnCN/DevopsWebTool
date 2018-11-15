@@ -91,7 +91,7 @@ def register(ctx, ip, url, agent_name):
     if token:
         urlEmoi = user.manager['manager']['url']
         head = {'Authorization': 'JWT {}'.format(token)}
-        resource = '/api/instances/{0}'.format(agent_name)
+        resource = '/api/hosts/{0}'.format(agent_name)
         res = requests.get('{0}/{1}'.format(urlEmoi, resource), headers=head)
         if res.status_code == 404:
             log.error(
@@ -104,7 +104,7 @@ def register(ctx, ip, url, agent_name):
             else:
                 if host['ip'] != '':
                     data_update = {'ip': ip}
-                    resource = '/api/instances/{0}'.format(agent_name)
+                    resource = '/api/hosts/{0}'.format(agent_name)
                     res = requests.put('{0}/{1}'.format(urlEmoi, resource),
                                        headers=head, data=data_update)
                     if res.status_code == 200:
