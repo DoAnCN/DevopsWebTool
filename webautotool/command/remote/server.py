@@ -89,34 +89,54 @@ class Server(object):
         ]
         self.execute(cmd, follow)
 
-    def create_db(self, php, db_name, instance_name, host='localhost', follow=False):
-        config_php = php + "/lib/db.php"
-        log = logger('create database')
+    def create_db(self, proj_dir, db_name, instance_name, inst_type='i',
+                  host='localhost', follow=False):
+        config_php = proj_dir + "/lib/db.php"
 
+        log = logger('create database')
         db_user = db_name
+
         log.info('Generate password')
-        passwd = self.generate_passwd()
+        if inst_type == 'i':
+            passwd = 'abc123ABC!!!'
+        elif inst_type == 's':
+            passwd = 'abc123ABC!@#'
+        else:
+            passwd = self.generate_passwd()
+
         log.info('Update file config connect between PHP and MySQL')
-        cmd = ['sed', '-i', "\"s/\$host =/\$host = \'{}\'\;/g;"
-                              "s/\$user =/\$user = \'{}\'\;/g;"
-                              "s/\$pass =/\$pass = \'{}\'\;/g;"
-                              "s/\$db =/\$db = \'{}\'\;/g\"".format(host, db_user,
-                                                    passwd, db_name), config_php]
+        cmd = ['sed', '-i',
+               "\"s/\$host =/\$host = \'{0}\'\;/g;"
+               "s/\$user =/\$user = \'{1}\'\;/g;"
+               "s/\$pass =/\$pass = \'{2}\'\;/g;"
+               "s/\$db =/\$db = \'{3}\'\;/g\"".format(host, db_user, passwd,
+                                                      db_name),
+               config_php]
         self.execute(cmd, follow)
+
         log.info('Create user database')
         self.create_user(db_user, host, passwd)
+
         log.info('Create database {}'.format(db_name))
         cmd = [
             'mysqladmin',
             'create', db_name
         ]
         self.execute(cmd, follow)
+
         log.info('Set grant all on database for user')
         self.grant_user(db_user, host, db_name)
-        dir_input = '/opt/web/{}/db/'.format(instance_name)
-        if self.check_remote_file(dir_input):
+
+        dir_input_db = '/opt/web/{0}/db/'.format(instance_name)
+        log.info('Prepare database for importing')
+        if inst_type != 'i':
+            self.import_db(dir_input_db, db_name)
+
+    def import_db(self, dir, db_name, follow=False):
+        log = logger('Import database')
+        if self.check_remote_file(dir):
             cmd = [
-                'find', dir_input,
+                'find', dir,
                 '-name', '*.sql'
             ]
             list_db = self.execute(cmd, follow)

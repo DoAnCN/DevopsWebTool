@@ -19,17 +19,16 @@ def remote(ctx, *args, **kw):
         ctx.invoke(deploy, *args, **kw)
 
 @remote.command()
-# @click.option('--user', '-u', default='ubuntu',
-#               help='User name of server')
-# @click.option('--address', '-a', default='127.0.0.1',
-#               help='Ip address of server')
-# @click.option('--instance-name', '-p', default='22',
-#               help='Port number ssh')
-# @click.option('--clone/--no-clone', '-c', is_flag=True, default=False,
-#               help = 'Accept clone source code from github')
+@click.option('--username', '-u', help='User name of system admin')
+@click.option('--ip', '-i', default='127.0.0.1',
+              help='Ip address of server')
+@click.option('--port', '-p', default='22',
+              help='Port number ssh')
+@click.option('--clone/--no-clone', '-c', is_flag=True, default=False,
+              help = 'Accept clone source code from github')
 @click.argument('instance_name')
 @click.pass_context
-def deploy(ctx, instance_name):
+def deploy(ctx, username, ip, port, instance_name):
     """Deploy new project or just update source code"""
     log = logger('Deploy log')
     user = UserConfig()
@@ -37,8 +36,9 @@ def deploy(ctx, instance_name):
     if token:
         head = {'Authorization': 'JWT {}'.format(token)}
         urlEmoi = user.manager['manager']['url']
-        resource = '/api/instances/{0}'.format(instance_name)
+        resource = 'api/instances/{0}'.format(instance_name)
         res = requests.get('{0}/{1}'.format(urlEmoi, resource), headers=head)
+
         if res.status_code == 404:
             log.error('Instance {0} not found on Emoi'.format(instance_name))
             return
@@ -55,7 +55,7 @@ def deploy(ctx, instance_name):
                 'latest_deploy': datetime.now()
             }
 
-            resource = '/api/instances/{0}'.format(instance_name)
+            resource = 'api/instances/{0}'.format(instance_name)
             res = requests.put('{0}/{1}'.format(urlEmoi, resource),
                                headers=head, data=data_update)
             if res.status_code == 200:
