@@ -5,31 +5,27 @@ from random import choice
 from sh import ssh, ErrorReturnCode_1
 
 from webautotool.config.log import logger
-from webautotool.config.user import UserConfig
+# from webautotool.config.user import UserConfig
 
 
 class Server(object):
 
-    def __init__(self, host, timeout=60):
-        self.user =  UserConfig()
-        self.serverConfig(host)
-        host_ssh = '%s@%s' % (self.user_host, self.address)
-        self.ssh = ssh.bake( host_ssh, '-p', self.port, '-A',
-                            '-o', 'UserKnownHostsFile=/dev/null',
-                            '-o', 'StrictHostKeyChecking=no',
-                            '-o', 'BatchMode=yes',
-                            '-o', 'PasswordAuthentication=no',
-                            '-o', 'ConnectTimeout=%s' % timeout)
-
-    def serverConfig(self, host):
+    def __init__(self, host, userhost='web', timeout=60):
         log = logger("Server configuration ")
+        # self.user =  UserConfig()
         if host:
             log.info('Configurating host')
-            self.address = host['ip'] or ''
-            self.port = host['port'] or ''
-            self.user_host = 'web'
+            host_ssh = '%s@%s' % (userhost, host['ip'])
+            self.ssh = ssh.bake( host_ssh, '-p', host['port'] or '22', '-A',
+                                '-o', 'UserKnownHostsFile=/dev/null',
+                                '-o', 'StrictHostKeyChecking=no',
+                                '-o', 'BatchMode=yes',
+                                '-o', 'PasswordAuthentication=no',
+                                '-o', 'ConnectTimeout=%s' % timeout)
         else:
             log.error('No host to deploy')
+            exit(0)
+
 
     def execute(self, cmd, follow=False, print_follow=False):
 

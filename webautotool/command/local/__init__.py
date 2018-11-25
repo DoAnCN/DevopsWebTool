@@ -2,15 +2,12 @@
 
 import click
 import os
-from os.path import dirname, isdir
+from os.path import isdir
 import sh
 from sh import ErrorReturnCode
-import requests
 
 from webautotool.command import webautotool as cli
 from webautotool.config.log import logger
-from webautotool.config.user import UserConfig
-from webautotool.command.local.monitor import Monitor
 
 
 def _set_info_for_php(proj_name, host='127.0.0.1'):
@@ -76,47 +73,3 @@ def start(ctx, url, version, name):
         gc()
 
     _set_info_for_php(name or url.split("/")[1].replace(".git",""))
-
-@web.command()
-@click.option('--ip', '-i', help='Agent\'s ip address')
-@click.option('--url', '-u', default='http://127.0.0.1:55000',
-              help='Manager\'s url')
-@click.argument('agent_name')
-@click.pass_context
-def register(ctx, ip, url, agent_name):
-    """Create trust relationship between Wazuh manager and agents."""
-    log = logger('Register agents')
-    user = UserConfig()
-    token = user.getToken()
-    if token:
-        urlEmoi = user.manager['manager']['url']
-        head = {'Authorization': 'JWT {}'.format(token)}
-        resource = 'api/hosts/{0}'.format(agent_name)
-        res = requests.get('{0}/{1}'.format(urlEmoi, resource), headers=head)
-        if res.status_code == 404:
-            log.error(
-                'Hostname {0} not found on Emoi'.format(agent_name))
-            return
-        elif res.status_code == 200:
-            host = res.json()
-            if not ip:
-                ip = host['ip']
-            else:
-                if host['ip'] != '':
-                    data_update = {'ip': ip}
-                    resource = 'api/hosts/{0}'.format(agent_name)
-                    res = requests.put('{0}/{1}'.format(urlEmoi, resource),
-                                       headers=head, data=data_update)
-                    if res.status_code == 200:
-                        log.info('Update succeeded')
-                    else:
-                        log.error('Something wrong '
-                                  'when you update host\'s ip address')
-        monitor = Monitor(url)
-        log.info('Adding agent {0} to manager'.format(agent_name))
-        agent_id, agent_key = monitor.add_agent(agent_name, ip)
-        log.info('Agent {0} had id {1}'.format(agent_name, agent_id))
-        log.info('Importing agent key')
-        monitor.import_key(agent_key)
-        log.info('Restarting ossec')
-        monitor.restart_ossec()
