@@ -44,4 +44,5 @@ class UserConfig(object):
             if response.status_code == 200:
                 return response.json()['token']
         except OSError as err:
-            log.error(err)
+            log.warning("Cannot access to web manager\n {0}".format(err))
+            return None

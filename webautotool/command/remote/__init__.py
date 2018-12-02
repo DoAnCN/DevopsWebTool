@@ -21,20 +21,26 @@ def remote(ctx, *args, **kw):
         ctx.invoke(deploy, *args, **kw)
 
 @remote.command()
-@click.option('--username', '-u', help='User name of system admin')
-@click.option('--ip', '-i', default='127.0.0.1',
-              help='Ip address of server')
+@click.option('--ip', '-i', help='Ip address of server')
 @click.option('--port', '-p', default='22',
               help='Port number ssh')
 @click.option('--clone/--no-clone', '-c', is_flag=True, default=False,
-              help = 'Accept clone source code from github')
+              help = 'Just execute clone project from github if clone=True')
+@click.option('--url', '-u', help='Repository url that can use to clone'
+                                  ' the project')
+@click.option('--project_name', '-P', help='Name of project')
+@click.option('--db_name', '-d', help='Name of database')
+@click.option('--project_ver', '-v', help='Project\'s version')
+@click.option('--type', '-t', help='Instance\'s type' )
 @click.argument('instance_name')
 @click.pass_context
-def deploy(ctx, username, ip, port, instance_name):
+def deploy(ctx, ip, port, instance_name, url, project_name, db_name,
+           project_ver, type, clone):
     """Deploy new project or just update source code"""
     log = logger('Deploy log')
     user = UserConfig()
     token = user.getToken()
+    instance = {}
     if token:
         head = {'Authorization': 'JWT {}'.format(token)}
         urlEmoi = user.manager['manager']['url']
@@ -46,33 +52,46 @@ def deploy(ctx, username, ip, port, instance_name):
             return
         elif res.status_code == 200:
             instance = res.json()
-            srv = Server(instance['host'])
-            try:
-                deploy_cmd(srv, instance, '1.0')
-            except:
-                raise
+    else:
+        if ip and port and url and project_ver:
+            instance = {'name': instance_name,
+                        'project': {'name': project_name or instance_name,
+                                    'url': url},
+                        'db_name': db_name or instance_name,
+                        'project_ver' : {"name": project_ver},
+                        'type': type or instance_name.split('_')[-1][0],}
+            host = {'ip': ip, 'port': port}
+        else:
+            log.error('Not enough information to execute command')
+            exit()
+    try:
+        srv = Server(instance['host'] if 'host' in instance else host)
+        deploy_cmd(srv, instance, clone)
 
-            data_update = {
-                'usr_deployed': user.manager['manager']['username'],
-                'latest_deploy': datetime.now()
-            }
+        data_update = {
+            'usr_deployed': user.manager['manager']['username'],
+            'latest_deploy': datetime.now()
+        }
 
-            resource = 'api/instances/{0}'.format(instance_name)
-            res = requests.put('{0}/{1}'.format(urlEmoi, resource),
-                               headers=head, data=data_update)
-            if res.status_code == 200:
-                log.info('The deployment process has been completed')
-            else:
-                log.warning('Cannot update user deployed instance {0} '
-                            'or deployment time'.format(instance_name))
+        resource = 'api/instances/{0}'.format(instance_name)
+        res = requests.put('{0}/{1}'.format(urlEmoi, resource),
+                           headers=head, data=data_update)
+        if res.status_code == 200:
+            log.info('The deployment process has been completed')
+        else:
+            log.warning('Cannot update user deployed instance {0} '
+                        'or deployment time'.format(instance_name))
+    except OSError as err:
+        log.error(err)
 
 @remote.command()
 @click.option('--ip', '-i', help='Agent\'s ip address')
+@click.option('--port', '-p', help='Agent\'s ssh port', default=22)
 @click.option('--url', '-u', default='http://127.0.0.1:55000',
               help='Wazuh manager\'s url')
 @click.argument('agent_name')
 @click.pass_context
-def register(ctx, ip, url, agent_name):
+def register(ctx, ip, port, url, agent_name):
     """Create trust relationship between Wazuh manager and agents."""
     log = logger('Register agents')
     user = UserConfig()
@@ -101,7 +120,13 @@ def register(ctx, ip, url, agent_name):
                     else:
                         log.error('Something wrong '
                                   'when you update host\'s ip address')
-
+    else:
+        if ip and port:
+            host = {'ip': ip, 'port': port}
+        else:
+            log.error('Not enough information to execute command')
+            exit()
+    try:
         srv = Server(host, userhost="root")
         monitor = Monitor(manager_url=url, server=srv)
 
@@ -129,3 +154,5 @@ def register(ctx, ip, url, agent_name):
             log.warning(
                 'Cannot update information about {0} host \n {1}'.format(
                     agent_name, res))
+    except OSError as err:
+        log.error(err)
