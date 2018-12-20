@@ -11,6 +11,7 @@
     - mysql-server-5.7
     - python-mysqldb
     - libmysqlclient-dev
+  when: inventory_hostname in groups.manager
 
 - name: Copy info login mysql as .my.cfg file
   template:

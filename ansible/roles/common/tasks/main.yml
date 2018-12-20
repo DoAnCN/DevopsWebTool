@@ -2,25 +2,20 @@
 - name: create new user web
   tags: [create_user_web]
   include: user.yml
-  when: inventory_hostname in groups.webserver
 
 - name: set locale
   tags: [locale]
   include: locale.yml
-  when: inventory_hostname in groups.webserver
 
 - name: install php
   tags: [php]
   include: php.yml
-  when: inventory_hostname in groups.webserver
 
 - name: install mysql
   tags: [mysql]
   include: mysql.yml
-  when: inventory_hostname in groups.webserver
 
 - name: install nginx
   tags: [nginx]
   include: nginx.yml
-  when: inventory_hostname in groups.webserver
 
