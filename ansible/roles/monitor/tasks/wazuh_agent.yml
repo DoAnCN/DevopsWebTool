@@ -36,11 +36,11 @@
     mode: 0640
   notify: restart wazuh-agent
 
-- name: Ensure Wazuh agent is started and enabled
-  tags: [install_agent,agent_conf]
-  service:
-    name: "{{ item }}"
-    enabled: yes
-    state: started
-  with_items:
-    - wazuh-agent
+#- name: Ensure Wazuh agent is started and enabled
+#  tags: [install_agent,agent_conf]
+#  service:
+#    name: "{{ item }}"
+#    enabled: yes
+#    state: started
+#  with_items:
+#    - wazuh-agent
