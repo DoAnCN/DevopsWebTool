@@ -33,13 +33,15 @@ def remote(ctx, *args, **kw):
 @click.option('--project_ver', '-v', help='Project\'s version')
 @click.option('--type', '-t', help='Instance\'s type' )
 @click.argument('instance_name')
+@click.argument('user_name')
 @click.pass_context
 def deploy(ctx, ip, port, instance_name, url, project_name, db_name,
-           project_ver, type, clone):
+           project_ver, type, clone, user_name):
     """Deploy new project or just update source code"""
     log = logger('Deploy log')
+
     user = UserConfig()
-    token = user.getToken()
+    token = user.getToken(user_name)
     instance = {}
     if token:
         head = {'Authorization': 'JWT {}'.format(token)}
@@ -90,12 +92,14 @@ def deploy(ctx, ip, port, instance_name, url, project_name, db_name,
 @click.option('--url', '-u', default='http://127.0.0.1:55000',
               help='Wazuh manager\'s url')
 @click.argument('agent_name')
+@click.argument('user_name')
 @click.pass_context
-def register(ctx, ip, port, url, agent_name):
+def register(ctx, ip, port, url, user_name, agent_name):
     """Create trust relationship between Wazuh manager and agents."""
     log = logger('Register agents')
     user = UserConfig()
-    token = user.getToken()
+    token = user.getToken(user_name)
+    print(token)
     if token:
         urlEmoi = user.manager['manager']['url']
         head = {'Authorization': 'JWT {}'.format(token)}

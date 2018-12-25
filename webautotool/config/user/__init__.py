@@ -20,14 +20,14 @@ class UserConfig(object):
                 "Missing file .manager, please authentication Who you are?")
             return
 
-    def getToken(self):
+    def getToken(self, user_name):
         log = logger('Get token')
-        url = self.manager['manager']['url']
+        url = self.manager['url']
         try:
             api_auth = '{0}/api/auth/token/'.format(url)
             data_auth = {
-                'username': self.manager['manager']['username'],
-                'password': self.manager['manager']['passwd']
+                'username': user_name,
+                'password': self.manager['manager'][user_name]
             }
             response = requests.post(api_auth, data=data_auth)
             if response.status_code == 400:
