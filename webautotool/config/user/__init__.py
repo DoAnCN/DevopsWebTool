@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import base64
 import yaml
 import requests
 from os.path import join, exists, expanduser
@@ -14,7 +15,11 @@ class UserConfig(object):
         commandrc = join(expanduser('~'), config_name)
         if exists(commandrc):
             with open(commandrc, 'r') as commandrc_file:
-                self.manager = yaml.load(commandrc_file) or {}
+                commandrc_file = commandrc_file.read().split('\n')
+                data = ''
+                for contennt in commandrc_file:
+                    data += base64.b64decode(contennt).decode()
+                self.manager = yaml.load(data) or {}
         if not self.manager:
             log.error(
                 "Missing file .manager, please authentication Who you are?")

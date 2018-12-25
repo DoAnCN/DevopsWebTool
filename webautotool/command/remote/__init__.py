@@ -99,7 +99,6 @@ def register(ctx, ip, port, url, user_name, agent_name):
     log = logger('Register agents')
     user = UserConfig()
     token = user.getToken(user_name)
-    print(token)
     if token:
         urlEmoi = user.manager['manager']['url']
         head = {'Authorization': 'JWT {}'.format(token)}
