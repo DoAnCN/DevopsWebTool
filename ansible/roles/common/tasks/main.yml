@@ -16,6 +16,6 @@
   include: mysql.yml
 
 - name: install nginx
-  tags: [nginx]
+  tags: [install_nginx]
   include: nginx.yml
 
