@@ -45,7 +45,7 @@ def deploy(ctx, ip, port, instance_name, url, project_name, db_name,
     instance = {}
     if token:
         head = {'Authorization': 'JWT {}'.format(token)}
-        urlEmoi = user.manager['manager']['url']
+        urlEmoi = user.manager['url']
         resource = 'api/instances/{0}'.format(instance_name)
         res = requests.get('{0}/{1}'.format(urlEmoi, resource), headers=head)
 
