@@ -60,7 +60,7 @@ def deploy(ctx, ip, port, instance_name, url, project_name, db_name,
                         'project': {'name': project_name or instance_name,
                                     'url': url},
                         'db_name': db_name or instance_name,
-                        'project_ver' : {"name": project_ver},
+                        'project_ver' : {"version": project_ver},
                         'type': type or instance_name.split('_')[-1][0],}
             host = {'ip': ip, 'port': port}
         else:
@@ -71,7 +71,7 @@ def deploy(ctx, ip, port, instance_name, url, project_name, db_name,
         deploy_cmd(srv, instance, clone)
 
         data_update = {
-            'usr_deployed': user.manager['manager']['username'],
+            'usr_deployed': user_name,
             'latest_deploy': datetime.now()
         }
 
