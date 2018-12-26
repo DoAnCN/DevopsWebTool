@@ -11,7 +11,7 @@ def deploy_cmd(server, instance, clone=False):
         inst_name = instance['name']
         url_remote = instance['project']['url']
         db_name = instance['db_name']
-        version = instance['project_ver']['name']
+        version = instance['project_ver']['version']
         inst_type = instance['type']
 
         dest_dir =  '/opt/web/{}'.format(inst_name)
