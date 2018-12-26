@@ -100,7 +100,7 @@ def register(ctx, ip, port, url, user_name, agent_name):
     user = UserConfig()
     token = user.getToken(user_name)
     if token:
-        urlEmoi = user.manager['manager']['url']
+        urlEmoi = user.manager['url']
         head = {'Authorization': 'JWT {}'.format(token)}
         resource = 'api/hosts/{0}'.format(agent_name)
         res = requests.get('{0}/{1}'.format(urlEmoi, resource), headers=head)

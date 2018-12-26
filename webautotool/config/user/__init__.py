@@ -40,13 +40,14 @@ class UserConfig(object):
                 if 'non_field_errors' in content:
                     log.error(content['non_field_errors'][0])
                     log.warning('Username/password incorrect')
-                if 'username' in content and 'required' in content['username'][
-                    0] or \
-                        'password' in content and 'required' in \
-                        content['password'][0]:
+                if 'username' in content and 'required' in content['username'][0] \
+                        or 'password' in content and 'required' in content['password'][0]:
                     log.error('Missing username or password')
                 return
-            if response.status_code == 200:
+            elif response.status_code == 404:
+                log.error('{0} not found, please check again'.format(api_auth))
+                return
+            elif response.status_code == 200:
                 return response.json()['token']
         except OSError as err:
             log.warning("Cannot access to web manager\n {0}".format(err))
