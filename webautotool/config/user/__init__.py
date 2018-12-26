@@ -32,7 +32,7 @@ class UserConfig(object):
             api_auth = '{0}/api/auth/token/'.format(url)
             data_auth = {
                 'username': user_name,
-                'password': self.manager['manager'][user_name]
+                'password': self.manager['manager'][user_name] if user_name in self.manager['manager'] else log.error('You have no permission to execute command')
             }
             response = requests.post(api_auth, data=data_auth)
             if response.status_code == 400:
