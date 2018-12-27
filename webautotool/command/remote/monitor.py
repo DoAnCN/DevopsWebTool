@@ -12,7 +12,7 @@ from webautotool.config.log import logger
 class Monitor(object):
 
     def __init__(self, manager_url, server, verify=False):
-        self.auth = HTTPBasicAuth('foo', 'bar')  # default username and password
+        self.auth = HTTPBasicAuth('titi', 'tutu')  # default username and password
         self.base_url = manager_url
         self.verify = verify  # Use with self-signed certificates.
         self.server = server
