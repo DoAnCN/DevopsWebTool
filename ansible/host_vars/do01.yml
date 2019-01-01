@@ -1,0 +1,2 @@
+nginx_domains:
+  - {ip: , port: 8080, name: hoanglammoc_production, domain: 68.183.177.196}

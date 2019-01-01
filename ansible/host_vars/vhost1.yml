@@ -1,0 +1,3 @@
+# Virtual machine host 10.0.2.11
+nginx_domains:
+  - {ip: 10.0.2.11, port: 8080, name: hoanglammoc_staging, domain: 10.0.2.11}

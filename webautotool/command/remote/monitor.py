@@ -12,7 +12,7 @@ from webautotool.config.log import logger
 class Monitor(object):
 
     def __init__(self, manager_url, server, verify=False):
-        self.auth = HTTPBasicAuth('foo', 'bar')  # default username and password
+        self.auth = HTTPBasicAuth('titi', 'tutu')  # default username and password
         self.base_url = manager_url
         self.verify = verify  # Use with self-signed certificates.
         self.server = server
@@ -79,11 +79,11 @@ class Monitor(object):
                 auth=self.auth )
             if res.status_code == 200:
                 last_alive = None
-                monitor = 'n'
+                monitor = 'n' #Never Connected
                 agent_info =  res.json()
                 if agent_info['error'] == 0:
                     if 'Active' in agent_info['data']['status']:
-                        monitor = 'a'
+                        monitor = 'a' #Active
                     elif 'Pending' in agent_info['data']['status']:
                         # Thực hiện lại get_status sau 3 lần pending,
                         # nếu sau 3 lần (mỗi lần 5s) agent vẫn ở trạng thái pending
@@ -92,11 +92,14 @@ class Monitor(object):
                             time.sleep(5)
                             pending_count += 1
                             return self.get_status(agent_name)
-                        monitor = 'p'
+                        monitor = 'p' #Pending
                         last_alive = agent_info['data']['lastKeepAlive']
+                    elif 'Disconnected' in agent_info['data']['status']:
+			monitor = 'd'
 
                     if monitor == 'a':
                         return {
+                            'id_agent': agent_info['data']['id'],
                             'monitor': monitor,
                             'date_add': agent_info['data']['dateAdd'],
                             'last_alive': agent_info['data']['lastKeepAlive'],
@@ -105,6 +108,7 @@ class Monitor(object):
                         }
                     else:
                         return {
+                            'id_agent': agent_info['data']['id'],
                             'monitor': monitor,
                             'date_add': agent_info['data']['dateAdd'],
                             'last_alive': last_alive,
