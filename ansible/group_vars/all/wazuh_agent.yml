@@ -1,11 +1,11 @@
 # Wazuh agent config
 
 wazuh_agent:
-  manager_ip: 192.168.100.240
+  manager_ip: 10.0.2.8
   manager_port: 1514
   manager_protocol: udp
-  noti_time: 10
-  time_reconnect: 60
+  noti_time: 5
+  time_reconnect: 30
   auto_restart: "yes"
   crypto_method: aes
   profile_conf:
@@ -15,7 +15,7 @@ wazuh_agent:
     events_per_sec: 500
   syscheck:
     disabled: "no"
-    frequency: 43200
+    frequency: 60
     scan_on_start: "yes"
     auto_ignore: "no"
     nodiff: /etc/ssl/private.key

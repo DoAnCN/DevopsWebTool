@@ -1,2 +1,3 @@
 sysadmin_keys:
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINiphmPOe1+iF5TwLdlStIn+CO8gcQdNg4aqY7g27BV3 datlh@datlh-N551JQ"
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINnectpCtxPB5FlUmZmYDFKGyij2o1X2bRtbfX3pOWXg ubuntu@ubuntu"
