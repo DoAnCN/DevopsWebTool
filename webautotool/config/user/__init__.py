@@ -18,7 +18,8 @@ class UserConfig(object):
                 commandrc_file = commandrc_file.read().split('\n')
                 data = ''
                 for contennt in commandrc_file:
-                    data += base64.b64decode(contennt).decode()
+                    data += '{}\n  '.format(
+                        base64.b64decode(contennt).decode())
                 self.manager = yaml.load(data) or {}
         if not self.manager:
             log.error(
