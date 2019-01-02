@@ -95,7 +95,7 @@ class Monitor(object):
                         monitor = 'p' #Pending
                         last_alive = agent_info['data']['lastKeepAlive']
                     elif 'Disconnected' in agent_info['data']['status']:
-			monitor = 'd'
+                        monitor = 'd'
 
                     if monitor == 'a':
                         return {

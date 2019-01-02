@@ -31,9 +31,12 @@ class UserConfig(object):
         url = self.manager['url']
         try:
             api_auth = '{0}/api/auth/token/'.format(url)
+            if user_name not in self.manager['manager']:
+                log.error('Permission denied')
+                exit()
             data_auth = {
                 'username': user_name,
-                'password': self.manager['manager'][user_name] if user_name in self.manager['manager'] else ""
+                'password': self.manager['manager'][user_name]
             }
             response = requests.post(api_auth, data=data_auth)
             if response.status_code == 400:
