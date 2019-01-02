@@ -196,7 +196,6 @@ def createDB(ctx, name, type, ip, port, createuser, instance_name, user_name):
     else:
         if ip and port:
             instance = {'name': instance_name,
-                        'project': {'name': instance_name.split('_')[0]},
                         'db_name': name or instance_name,
                         'type': type or instance_name.split('_')[-1][0], }
             host = {'ip': ip, 'port': port}
@@ -206,7 +205,10 @@ def createDB(ctx, name, type, ip, port, createuser, instance_name, user_name):
     try:
         srv = Server(instance['host'] if 'host' in instance else host)
         dest_dir = '/opt/web/{}'.format(instance_name)
-        srv.create_db(dest_dir, name, instance_name, type, createuser)
+        srv.create_db(dest_dir, instance['db_name'], instance_name,
+                      instance['type'], createuser)
+        log.info(
+            'Create new database has been completed')
     except OSError as err:
         log.error(err)
 
@@ -239,7 +241,6 @@ def importDB(ctx, name, ip, port, instance_name, user_name):
     else:
         if ip and port:
             instance = {'name': instance_name,
-                        'project': {'name': instance_name.split('_')[0]},
                         'db_name': name or instance_name,}
             host = {'ip': ip, 'port': port}
         else:
@@ -248,7 +249,8 @@ def importDB(ctx, name, ip, port, instance_name, user_name):
     try:
         srv = Server(instance['host'] if 'host' in instance else host)
         dest_dir = '/opt/web/{}'.format(instance_name)
-        srv.import_db(dest_dir, name, follow=False)
+        srv.import_db(dest_dir, instance['db_name'], follow=False)
+        log.info(
+            'Import database has been completed')
     except OSError as err:
         log.error(err)
-        

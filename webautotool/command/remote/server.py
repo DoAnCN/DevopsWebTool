@@ -91,7 +91,7 @@ class Server(object):
         if not db_name:
             db_name = instance_name
         log = logger('create database')
-        db_user = db_name
+        db_user = instance_name
 
         log.info('Generate password')
         if inst_type == 'i':
