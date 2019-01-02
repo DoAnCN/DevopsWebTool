@@ -43,21 +43,22 @@ def deploy(ctx, ip, port, instance_name, url, project_name, db_name,
     user = UserConfig()
     token = user.getToken(user_name)
     instance = {}
+    urlWebManager = user.manager['url']
     if token:
         head = {'Authorization': 'JWT {}'.format(token)}
-        urlEmoi = user.manager['url']
         resource = 'api/instances/{0}'.format(instance_name)
-        res = requests.get('{0}/{1}'.format(urlEmoi, resource), headers=head)
+        res = requests.get('{0}/{1}'.format(urlWebManager, resource), headers=head)
 
         if res.status_code == 404:
-            log.error('Instance {0} not found on Emoi'.format(instance_name))
+            log.error('Instance {0} not found on WebManager'.format(instance_name))
             return
         elif res.status_code == 200:
             instance = res.json()
     else:
         if ip and port and url and project_ver:
             instance = {'name': instance_name,
-                        'project': {'name': project_name or instance_name,
+                        'project': {'name': project_name or
+                                            instance_name.split('_')[0],
                                     'url': url},
                         'db_name': db_name or instance_name,
                         'project_ver' : {"version": project_ver},
@@ -70,19 +71,20 @@ def deploy(ctx, ip, port, instance_name, url, project_name, db_name,
         srv = Server(instance['host'] if 'host' in instance else host)
         deploy_cmd(srv, instance, clone)
 
-        data_update = {
-            'usr_deployed': user_name,
-            'latest_deploy': datetime.now()
-        }
-
-        resource = 'api/instances/{0}'.format(instance_name)
-        res = requests.put('{0}/{1}'.format(urlEmoi, resource),
-                           headers=head, data=data_update)
-        if res.status_code == 200:
-            log.info('The deployment process has been completed')
-        else:
-            log.warning('Cannot update user deployed instance {0} '
-                        'or deployment time'.format(instance_name))
+        if token:
+            data_update = {
+                'usr_deployed': user_name,
+                'latest_deploy': datetime.now()
+            }
+            head = {'Authorization': 'JWT {}'.format(token)}
+            resource = 'api/instances/{0}'.format(instance_name)
+            res = requests.put('{0}/{1}'.format(urlWebManager, resource),
+                               headers=head, data=data_update)
+            if res.status_code == 200:
+                log.info('The deployment process has been completed')
+            else:
+                log.warning('Cannot update user deployed instance {0} '
+                            'or deployment time'.format(instance_name))
     except OSError as err:
         log.error(err)
 
@@ -99,14 +101,14 @@ def register(ctx, ip, port, url, user_name, agent_name):
     log = logger('Register agents')
     user = UserConfig()
     token = user.getToken(user_name)
+    urlWebManager = user.manager['url']
     if token:
-        urlEmoi = user.manager['url']
         head = {'Authorization': 'JWT {}'.format(token)}
         resource = 'api/hosts/{0}'.format(agent_name)
-        res = requests.get('{0}/{1}'.format(urlEmoi, resource), headers=head)
+        res = requests.get('{0}/{1}'.format(urlWebManager, resource), headers=head)
         if res.status_code == 404:
             log.error(
-                'Hostname {0} not found on Emoi'.format(agent_name))
+                'Hostname {0} not found on WebManager'.format(agent_name))
             return
         elif res.status_code == 200:
             host = res.json()
@@ -116,7 +118,7 @@ def register(ctx, ip, port, url, user_name, agent_name):
                 if host['ip'] != '':
                     data_update = {'ip': ip}
                     resource = 'api/hosts/{0}'.format(agent_name)
-                    res = requests.put('{0}/{1}'.format(urlEmoi, resource),
+                    res = requests.put('{0}/{1}'.format(urlWebManager, resource),
                                        headers=head, data=data_update)
                     if res.status_code == 200:
                         log.info('Update succeeded')
@@ -145,17 +147,108 @@ def register(ctx, ip, port, url, user_name, agent_name):
 
         time.sleep(5) # Đợi 5s cho quá trình restart trình điều khiển của agent hoàn tất
 
-        log.info('Update infomations')
-        data_update = monitor.get_status(agent_name)
-        resource = 'api/hosts/{0}'.format(agent_name)
-        res = requests.put('{0}/{1}'.format(urlEmoi, resource),
-                           headers=head, data=data_update)
-        if res.status_code == 200:
-            log.info(
-                'The register agent process has been completed')
-        else:
-            log.warning(
-                'Cannot update information about {0} host \n {1}'.format(
-                    agent_name, res))
+        if token:
+            head = {'Authorization': 'JWT {}'.format(token)}
+            log.info('Update infomations')
+            data_update = monitor.get_status(agent_name)
+            resource = 'api/hosts/{0}'.format(agent_name)
+            res = requests.put('{0}/{1}'.format(urlWebManager, resource),
+                               headers=head, data=data_update)
+            if res.status_code == 200:
+                log.info(
+                    'The register agent process has been completed')
+            else:
+                log.warning(
+                    'Cannot update information about {0} host \n {1}'.format(
+                        agent_name, res))
     except OSError as err:
         log.error(err)
+
+@remote.command()
+@click.option('--name', '-n', help='Database name')
+@click.option('--type', '-t', help='Type of instance', default='i')
+@click.option('--ip', '-i', help='Ip address of server')
+@click.option('--port', '-p', default='22',
+              help='Port number ssh')
+@click.option('--createuser/--no-createuser', is_flag=True, default=False,
+              help = 'Accept to create new user manage database')
+@click.argument('instance_name')
+@click.argument('user_name')
+@click.pass_context
+def createDB(ctx, name, type, ip, port, createuser, instance_name, user_name):
+    """Create empty database for instance"""
+    log = logger('Create empty database log')
+    print(createDB)
+    user = UserConfig()
+    token = user.getToken(user_name)
+    instance = {}
+    if token:
+        head = {'Authorization': 'JWT {}'.format(token)}
+        urlWebManager = user.manager['url']
+        resource = 'api/instances/{0}'.format(instance_name)
+        res = requests.get('{0}/{1}'.format(urlWebManager, resource), headers=head)
+
+        if res.status_code == 404:
+            log.error('Instance {0} not found on WebManager'.format(instance_name))
+            return
+        elif res.status_code == 200:
+            instance = res.json()
+    else:
+        if ip and port:
+            instance = {'name': instance_name,
+                        'project': {'name': instance_name.split('_')[0]},
+                        'db_name': name or instance_name,
+                        'type': type or instance_name.split('_')[-1][0], }
+            host = {'ip': ip, 'port': port}
+        else:
+            log.error('Not enough information to execute command')
+            exit()
+    try:
+        srv = Server(instance['host'] if 'host' in instance else host)
+        dest_dir = '/opt/web/{}'.format(instance_name)
+        srv.create_db(dest_dir, name, instance_name, type, createuser)
+    except OSError as err:
+        log.error(err)
+
+@remote.command()
+@click.option('--name', '-n', help='Database name')
+@click.option('--ip', '-i', help='Ip address of server')
+@click.option('--port', '-p', default='22',
+              help='Port number ssh')
+@click.argument('instance_name')
+@click.argument('user_name')
+@click.pass_context
+def importDB(ctx, name, ip, port, instance_name, user_name):
+    """Create empty database for instance"""
+    log = logger('Create empty database log')
+
+    user = UserConfig()
+    token = user.getToken(user_name)
+    instance = {}
+    if token:
+        head = {'Authorization': 'JWT {}'.format(token)}
+        urlWebManager = user.manager['url']
+        resource = 'api/instances/{0}'.format(instance_name)
+        res = requests.get('{0}/{1}'.format(urlWebManager, resource), headers=head)
+
+        if res.status_code == 404:
+            log.error('Instance {0} not found on WebManager'.format(instance_name))
+            return
+        elif res.status_code == 200:
+            instance = res.json()
+    else:
+        if ip and port:
+            instance = {'name': instance_name,
+                        'project': {'name': instance_name.split('_')[0]},
+                        'db_name': name or instance_name,}
+            host = {'ip': ip, 'port': port}
+        else:
+            log.error('Not enough information to execute command')
+            exit()
+    try:
+        srv = Server(instance['host'] if 'host' in instance else host)
+        dest_dir = '/opt/web/{}'.format(instance_name)
+        srv.import_db(dest_dir, name, follow=False)
+    except OSError as err:
+        log.error(err)
+        

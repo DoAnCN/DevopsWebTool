@@ -86,9 +86,10 @@ class Server(object):
         self.execute(cmd, follow)
 
     def create_db(self, proj_dir, db_name, instance_name, inst_type='i',
-                  host='localhost', follow=False):
+                  create_user=False, host='localhost', follow=False):
         config_php = proj_dir + "/lib/db.php"
-
+        if not db_name:
+            db_name = instance_name
         log = logger('create database')
         db_user = db_name
 
@@ -109,24 +110,20 @@ class Server(object):
                                                       db_name),
                config_php]
         self.execute(cmd, follow)
-
-        log.info('Create user database')
-        self.create_user(db_user, host, passwd)
+        if create_user:
+            log.info('Create user database')
+            self.create_user(db_user, host, passwd)
 
         log.info('Create database {}'.format(db_name))
         cmd = [
             'mysqladmin',
             'create', db_name
         ]
-        self.execute(cmd, follow)
-
+        output = self.execute(cmd, follow)
         log.info('Set grant all on database for user')
         self.grant_user(db_user, host, db_name)
 
-        dir_input_db = '/opt/web/{0}/db/'.format(instance_name)
-        log.info('Prepare database for importing')
-        if inst_type != 'i':
-            self.import_db(dir_input_db, db_name)
+
 
     def import_db(self, dir, db_name, follow=False):
         log = logger('Import database')
