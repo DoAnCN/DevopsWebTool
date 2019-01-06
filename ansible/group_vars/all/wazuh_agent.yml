@@ -13,6 +13,16 @@ wazuh_agent:
     disabled: "no"
     size: 5000
     events_per_sec: 500
+  system:
+    disabled: "no"
+    interval: "60s"
+    scan_on_start: "yes"
+    hardware: "yes"
+    os: "yes"
+    network: "yes"
+    packages: "yes"
+    ports: "yes"
+    processes: "yes"
   syscheck:
     disabled: "no"
     frequency: 60

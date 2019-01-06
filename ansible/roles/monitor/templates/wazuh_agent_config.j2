@@ -21,6 +21,21 @@
   </client_buffer>
 {% endif %}
 
+
+{% if wazuh_agent.system is defined %}
+  <wodle name="syscollector">
+    <disabled>{{ wazuh_agent.system.disabled }}</disabled>
+    <interval>{{ wazuh_agent.system.interval }}</interval>
+    <scan_on_start>{{ wazuh_agent.system.scan_on_start }}</scan_on_start>
+    <hardware>{{ wazuh_agent.system.hardware }}</hardware>
+    <os>{{ wazuh_agent.system.os }}</os>
+    <network>{{ wazuh_agent.system.network }}</network>
+    <packages>{{ wazuh_agent.system.packages }}</packages>
+    <ports all="no">{{ wazuh_agent.system.ports }}</ports>
+    <processes>{{ wazuh_agent.system.processes }}</processes>
+  </wodle>
+{% endif %}
+
 {% if wazuh_agent.syscheck is defined %}
   <syscheck>
     <disabled>{{ wazuh_agent.syscheck.disabled }}</disabled>

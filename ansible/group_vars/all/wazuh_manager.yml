@@ -48,12 +48,12 @@ wazuh_manager:
     skip_nfs: "yes"
   syscheck:
     disabled: "no"
-    frequency: 43200
+    frequency: 600
     scan_on_start: "yes"
     alert_new_files: "yes"
     auto_ignore:
       value: "no"
-      frequency: 10
+      frequency: 300
       timeframe: 3600
     nodiff: /etc/ssl/private.key
     remove_old_diff: "yes"
