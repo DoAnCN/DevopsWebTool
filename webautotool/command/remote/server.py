@@ -86,7 +86,7 @@ class Server(object):
         self.execute(cmd, follow)
 
     def create_db(self, proj_dir, db_name, instance_name, inst_type='i',
-                  create_user=False, host='localhost', follow=False):
+                  create_user=True, host='localhost', follow=False):
         config_php = proj_dir + "/lib/db.php"
         if not db_name:
             db_name = instance_name
