@@ -24,7 +24,7 @@ def deploy_cmd(server, instance, clone=False):
             if not clone:
                 server.create_db(dest_dir, db_name, inst_name, inst_type)
             if inst_type != 'i':
-                dir_input_db = '/opt/web/{0}/db/'.format(instance)
+                dir_input_db = '/opt/web/{0}/db/'.format(inst_name)
                 log.info('Prepare database for importing')
                 server.import_db(dir_input_db, db_name)
         else:
